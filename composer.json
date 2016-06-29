@@ -1,0 +1,14 @@
+{
+    "name": "iubar/iubar-login",
+    "type": "library",
+    "require": {
+        "google/apiclient" : "*",
+		"google/recaptcha": "~1.1",
+		"facebook/php-sdk-v4" : "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Iubar\\": "src/Iubar/"
+        }
+    }
+}
