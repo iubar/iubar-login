@@ -331,8 +331,8 @@ class Login {
 		// set session cookie setting manually,
 		// Why? because you need to explicitly set session expiry, path, domain, secure, and HTTP.
 		// @see https://www.owasp.org/index.php/PHP_Security_Cheat_Sheet#Cookies
-		setcookie(session_name(), session_id(), time() + Config::get('SESSION_RUNTIME'), Config::get('COOKIE_PATH'),
-				Config::get('COOKIE_DOMAIN'), Config::get('COOKIE_SECURE'), Config::get('COOKIE_HTTP'));
+		setcookie(session_name(), session_id(), time() + Config::get('session.runtime'), Config::get('cookie.path'),
+				Config::get('cookie.domain'), Config::get('cookie.secure'), Config::get('cookie.http'));
 		
 		\Slim\Slim::getInstance()->log->debug("Session name: " . session_name() . " id: " . session_id());
 	}
@@ -412,8 +412,8 @@ class Login {
         // attacker could steal your remember-me cookie string and would login itself).
         // If you are using HTTPS, then you should set the "secure" flag (the second one from right) to true, too.
         // @see http://www.php.net/manual/en/function.setcookie.php
-        setcookie(self::COOKIE_REMEMBER_ME, $cookie_string, time() + Config::get('COOKIE_RUNTIME'), Config::get('COOKIE_PATH'),
-            Config::get('COOKIE_DOMAIN'), Config::get('COOKIE_SECURE'), Config::get('COOKIE_HTTP'));
+        setcookie(self::COOKIE_REMEMBER_ME, $cookie_string, time() + Config::get('cookie.runtime'), Config::get('cookie.path'),
+            Config::get('cookie.domain'), Config::get('cookie.secure'), Config::get('cookie.http'));
 	}
 	
 	/**
@@ -434,8 +434,8 @@ class Login {
 	    }
 	    
         // delete remember_me cookie in browser
-        setcookie(self::COOKIE_REMEMBER_ME, false, time() - (3600 * 24 * 3650), Config::get('COOKIE_PATH'),
-            Config::get('COOKIE_DOMAIN'), Config::get('COOKIE_SECURE'), Config::get('COOKIE_HTTP'));
+        setcookie(self::COOKIE_REMEMBER_ME, false, time() - (3600 * 24 * 3650), Config::get('cookie.path'),
+            Config::get('cookie.domain'), Config::get('cookie.secure'), Config::get('cookie.http'));
     }
 	
 	/**

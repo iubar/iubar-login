@@ -152,7 +152,7 @@ class User {
     
     public static function getUserAvatarLink($user){
     	$user_avatar_link = null;
-    	if (Config::get('USE_GRAVATAR')) {
+    	if (Config::get('gravatar.enabled')) {
     		$user_avatar_link = AvatarModel::getGravatarLinkByEmail($user->getEmail());
     	} else {
     		$user_avatar_link = AvatarModel::getPublicAvatarFilePathOfUser($user->getHasavatar(), $user->getUsername());

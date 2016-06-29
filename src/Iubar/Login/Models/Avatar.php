@@ -29,7 +29,7 @@ class Avatar {
     {
         return 'http://www.gravatar.com/avatar/' .
         md5(strtolower(trim($email))) .
-        '?s=' . Config::get('AVATAR_SIZE') . '&d=' . Config::get('GRAVATAR_DEFAULT_IMAGESET') . '&r=' . Config::get('GRAVATAR_RATING');
+        '?s=' . Config::get('avatar.size') . '&d=' . Config::get('gravatar.imageset') . '&r=' . Config::get('gravatar.rating');
     }
     /**
      * Gets the user's avatar file path
@@ -39,9 +39,9 @@ class Avatar {
      */
     public static function getPublicAvatarFilePathOfUser($user_has_avatar, $user_name){
         if ($user_has_avatar) {        	
-            return Config::get('URL') . Config::get('PATH_AVATARS_PUBLIC') . $this->getIdForImage($user_name) . '.jpg';
+            return Config::get('app.baseurl') . Config::get('avatar.path.public') . $this->getIdForImage($user_name) . '.jpg';
         }
-        return Config::get('URL') . Config::get('PATH_AVATARS_PUBLIC') . Config::get('AVATAR_DEFAULT_IMAGE');
+        return Config::get('app.baseurl') . Config::get('avatar.path.public') . Config::get('avatar.default');
     }
     /**
      * Gets the user's avatar file path
@@ -51,9 +51,9 @@ class Avatar {
     public static function getPublicUserAvatarFilePathByUserName($userName){
     	$user = UserModel::getByUsername($userName);
         if ($user && $user->getHasavatar()) {
-            return Config::get('URL') . Config::get('PATH_AVATARS_PUBLIC') . $this->getIdForImage($user_name) . '.jpg';
+            return Config::get('app.baseurl') . Config::get('avatar.path.public') . $this->getIdForImage($user_name) . '.jpg';
         }
-        return Config::get('URL') . Config::get('PATH_AVATARS_PUBLIC') . Config::get('AVATAR_DEFAULT_IMAGE');
+        return Config::get('app.baseurl') . Config::get('avatar.path.public') . Config::get('avatar.default');
     }
     /**
      * Create an avatar picture (and checks all necessary things too)
@@ -65,8 +65,8 @@ class Avatar {
         if (self::isAvatarFolderWritable() AND self::validateImageFile()) {
             // create a jpg file in the avatar folder, write marker to database
             $user_name = Session::get(Session::SESSION_USER_NAME);
-            $target_file_path = Config::get('PATH_AVATARS') . $this->getIdForImage($user_name);
-            self::resizeAvatarImage($_FILES['avatar_file']['tmp_name'], $target_file_path, Config::get('AVATAR_SIZE'), Config::get('AVATAR_SIZE'));
+            $target_file_path = Config::get('avatar.path') . $this->getIdForImage($user_name);
+            self::resizeAvatarImage($_FILES['avatar_file']['tmp_name'], $target_file_path, Config::get('avatar.size'), Config::get('avatar.size'));
             self::writeAvatarToDatabase(Session::getDecoded(Session::SESSION_USER_NAME));
             Session::set(Session::SESSION_USER_AVATAR_FILE, self::getPublicUserAvatarFilePathByUserName(Session::get(Session::SESSION_USER_NAME)));
             Session::add(Session::SESSION_FEEDBACK_POSITIVE, Text::get('FEEDBACK_AVATAR_UPLOAD_SUCCESSFUL'));
@@ -78,7 +78,7 @@ class Avatar {
      * @return bool success status
      */
     public static function isAvatarFolderWritable(){
-        if (is_dir(Config::get('PATH_AVATARS')) AND is_writable(Config::get('PATH_AVATARS'))) {
+        if (is_dir(Config::get('avatar.path')) AND is_writable(Config::get('avatar.path'))) {
             return true;
         }
         Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_AVATAR_FOLDER_DOES_NOT_EXIST_OR_NOT_WRITABLE'));
@@ -104,7 +104,7 @@ class Avatar {
         // get the image width, height and mime type
         $image_proportions = getimagesize($_FILES['avatar_file']['tmp_name']);
         // if input file too small, [0] is the width, [1] is the height
-        if ($image_proportions[0] < Config::get('AVATAR_SIZE') OR $image_proportions[1] < Config::get('AVATAR_SIZE')) {
+        if ($image_proportions[0] < Config::get('avatar.size') OR $image_proportions[1] < Config::get('avatar.size')) {
             Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_AVATAR_UPLOAD_TOO_SMALL'));
             return false;
         }
@@ -167,7 +167,7 @@ class Avatar {
         $thumb = imagecreatetruecolor($final_width, $final_height);
         imagecopyresampled($thumb, $myImage, 0, 0, $horizontalCoordinateOfSource, $verticalCoordinateOfSource, $final_width, $final_height, $smallestSide, $smallestSide);
         // add '.jpg' to file path, save it as a .jpg file with our $destination_filename parameter
-        imagejpeg($thumb, $destination . '.jpg', Config::get('AVATAR_JPEG_QUALITY'));
+        imagejpeg($thumb, $destination . '.jpg', Config::get('avatar.quality'));
         imagedestroy($thumb);
         if (file_exists($destination)) {
             return true;
@@ -211,12 +211,12 @@ class Avatar {
     	$avatarId = $this->getIdForImage($userName);
     	
         // Check if file exists
-        if (!file_exists(Config::get('PATH_AVATARS') . $avatarId . ".jpg")) {
+        if (!file_exists(Config::get('avatar.path') . $avatarId . ".jpg")) {
             Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get("FEEDBACK_AVATAR_IMAGE_DELETE_NO_FILE"));
             return false;
         }
         // Delete avatar file
-        if (!unlink(Config::get('PATH_AVATARS') . $avatarId . ".jpg")) {
+        if (!unlink(Config::get('avatar.path') . $avatarId . ".jpg")) {
             Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get("FEEDBACK_AVATAR_IMAGE_DELETE_FAILED"));
             return false;
         }
