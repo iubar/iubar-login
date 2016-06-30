@@ -2,7 +2,7 @@
 
 namespace Iubar\Login\Services;
 
-use Application\Core\DbResource;
+use Iubar\Login\Core\DbResource;
 use Iubar\Login\Services\Filter;
 
 class User {

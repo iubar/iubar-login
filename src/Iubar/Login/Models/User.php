@@ -2,7 +2,7 @@
 
 namespace Iubar\Login\Models;
 
-use Application\Core\DbResource;
+use Iubar\Login\Core\DbResource;
 use Iubar\Login\Models\AvatarModel;
 use Iubar\Login\Services\Login\Config;
 use Iubar\Login\Services\Session;

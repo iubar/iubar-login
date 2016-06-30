@@ -4,7 +4,8 @@
     "require": {
         "google/apiclient" : "*",
 		"google/recaptcha": "~1.1",
-		"facebook/php-sdk-v4" : "^5.0"
+		"facebook/php-sdk-v4" : "^5.0",
+		"swiftmailer/swiftmailer" : "5.4.*"
     },
     "autoload": {
         "psr-4": {

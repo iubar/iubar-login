@@ -2,12 +2,11 @@
 
 namespace Iubar\Login\Models;
 
-use Application\Core\DbResource;
+use Iubar\Login\Core\DbResource;
 use Iubar\Login\Services\Config;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Text;
 use Iubar\Login\Services\Mail;
-use Iubar\Login\Models\User as UserModel;
 use Iubar\Login\Services\Encryption;
 use \ReCaptcha\ReCaptcha;
 
@@ -114,8 +113,7 @@ class Registration
 			return false;
 
 		}else{
-			if(true){
-			//if(self::sendWelcomeEmail($user_name, $user_email)){
+			if (self::sendWelcomeEmail($user_name, $user_email)){
 				return true;
 			}
 			\Slim\Slim::getInstance()->log->debug("ERROR: sending welcome email to " . $user_email . " failed");
@@ -297,12 +295,12 @@ class Registration
  	private static function sendVerificationEmail($user_name, $user_email, $user_activation_hash){
  		$app = \Slim\Slim::getInstance();
 
-		$url = $app->config('app.baseurl') . '/' . Config::get('EMAIL_VERIFICATION_URL')
+		$url = $app->config('app.baseurl') . '/' . Config::get('email.verification.url')
 			. '/' . urlencode($user_activation_hash) . "?user_name=" . urlencode(Encryption::encrypt($user_name));
 		
-		$body = Config::get('EMAIL_VERIFICATION_CONTENT') . ' <a href="'.$url.'">'.$url.'</a>';
+		$body = Config::get('email.verification.content') . ' <a href="'.$url.'">'.$url.'</a>';
 		
-		$mail = new \Application\Core\EmailSender();
+		$mail = new \Iubar\Login\Core\EmailSender();
 		$mail->setTo($user_email);
 		$mail->setSubject('Attivazione account');
 		$mail->setBodyHtml($body);
@@ -318,9 +316,9 @@ class Registration
 	}
 
 	private static function sendWelcomeEmail($user_name, $user_email){
-		$body = Config::get('EMAIL_WELCOME_CONTENT');
+		$body = Config::get('email.welcome.content');
 
-		$mail = new \Application\Core\EmailSender();
+		$mail = new \Iubar\Login\Core\EmailSender();
 		$mail->setTo($user_email);
 		$mail->setSubject('Attivazione account');
 		$mail->setBodyHtml($body);

@@ -2,7 +2,7 @@
 
 namespace Iubar\Login\Models;
 
-use Application\Core\DbResource;
+use Iubar\Login\Core\DbResource;
 use Iubar\Login\Models\User as UserModel;
 use Iubar\Login\Services\Config;
 use Iubar\Login\Services\Session;
