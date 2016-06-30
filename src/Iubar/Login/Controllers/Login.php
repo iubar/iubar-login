@@ -3,7 +3,7 @@
 namespace Iubar\Login\Controllers;
 
 use Iubar\Login\Core\AbstractController;
-use Iubar\Login\Models\PasswordResetModel;
+use Iubar\Login\Models\PasswordReset as PasswordResetModel;
 use Iubar\Login\Models\Login as LoginModel;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Csrf;

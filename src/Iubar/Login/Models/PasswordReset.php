@@ -112,13 +112,13 @@ class PasswordReset
 	public static function sendPasswordResetMail($user_name, $user_password_reset_hash, $user_email) {
 		// create email body
 		$app = \Slim\Slim::getInstance();
-		$url = $app->config('app.baseurl') . '/' . Config::get('EMAIL_PASSWORD_RESET_URL') . '/'  . urlencode($user_password_reset_hash) . "?user_name=" . urlencode(Encryption::encrypt($user_name));
-		
-		$body = Config::get('EMAIL_PASSWORD_RESET_CONTENT') . ' <a href="'.$url.'">'.$url.'</a>';
+		$url = $app->config('app.baseurl') . '/' . Config::get('email.pwdreset.url') . '/'  . urlencode($user_password_reset_hash) . "?user_name=" . urlencode(Encryption::encrypt($user_name));
+		$subject = Config::get('email.pwdreset.subject');
+		$body = Config::get('email.pwdreset.content') . ' <a href="'.$url.'">'.$url.'</a>';
 		// create instance of EmailSender class, try sending and check
 		$mail = new \Application\Core\EmailSender();
 		$mail->setTo($user_email);
-		$mail->setSubject(Config::get('EMAIL_PASSWORD_RESET_SUBJECT'));
+		$mail->setSubject($subject);
 		$mail->setBodyHtml($body);
 		$mail_sent = $mail->go(true);
 		
