@@ -310,7 +310,7 @@ class Login {
 	 */
 	public static function setSuccessfulLoginIntoSession($user_name, $user_email, $user_account_type, $user_provider_type){
 		//  Session::init();
-		
+
 		Session::regenerateId();
 				
 		Session::set(Session::SESSION_USER_NAME, $user_name);

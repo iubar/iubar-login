@@ -50,12 +50,12 @@ class Login extends AbstractController {
 		
 		// perform the login method, put result (true or false) into $login_successful
 		$login_successful = LoginModel::login(
-				$this->app->request->post('user_name'), 
-				$this->app->request->post('user_password'), 
-				$this->app->request->post('set_remember_me_cookie'),
-				UserModel::PROVIDER_TYPE_DEFAULT
-				);
-
+			$this->app->request->post('user_name'), 
+			$this->app->request->post('user_password'), 
+			$this->app->request->post('set_remember_me_cookie'),
+			UserModel::PROVIDER_TYPE_DEFAULT
+		);
+		
 		// check login status: if true, then redirect user to user/index, if false, then to login form again
 		$this->redirectAfterLogin($login_successful);
 	}

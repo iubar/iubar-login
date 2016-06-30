@@ -298,11 +298,12 @@ class Registration
 		$url = $app->config('app.baseurl') . '/' . Config::get('email.verification.url')
 			. '/' . urlencode($user_activation_hash) . "?user_name=" . urlencode(Encryption::encrypt($user_name));
 		
+		$subject = Config::get('email.verification.subject');
 		$body = Config::get('email.verification.content') . ' <a href="'.$url.'">'.$url.'</a>';
 		
 		$mail = new \Iubar\Login\Core\EmailSender();
 		$mail->setTo($user_email);
-		$mail->setSubject('Attivazione account');
+		$mail->setSubject($subject);
 		$mail->setBodyHtml($body);
 		$mail_sent = $mail->go(true);
 		
@@ -316,11 +317,12 @@ class Registration
 	}
 
 	private static function sendWelcomeEmail($user_name, $user_email){
+		$subject = Config::get('email.welcome.subject');
 		$body = Config::get('email.welcome.content');
 
 		$mail = new \Iubar\Login\Core\EmailSender();
 		$mail->setTo($user_email);
-		$mail->setSubject('Attivazione account');
+		$mail->setSubject($subject);
 		$mail->setBodyHtml($body);
 		$mail_sent = $mail->go(true);
 		

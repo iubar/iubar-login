@@ -2,7 +2,7 @@
 
 namespace Iubar\Login\Core;
 
-use Iubar\Login\Models\Login\LoginModel;
+use Iubar\Login\Models\Login as LoginModel;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Csrf;
 
