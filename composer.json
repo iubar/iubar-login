@@ -22,8 +22,7 @@
         }
     },
 	"config": {
-        "component-dir": "public/assets",
-        "component-baseurl": "/assets"
+        "component-dir": "public/assets"
     },    
     "autoload": {
         "psr-4": {
