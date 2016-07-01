@@ -11,7 +11,8 @@
 	"extra": {
         "component": {
             "scripts": [
-                "public/js/login.js"
+                "js/google.js",
+                "js/facebook.js",
             ],
             "styles": [
                 
