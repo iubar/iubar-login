@@ -22,7 +22,8 @@
         }
     },
 	"config": {
-        "component-dir": "/public/assets"
+        "component-dir": "",
+        "component-requirejs": false
     },    
     "autoload": {
         "psr-4": {
