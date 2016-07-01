@@ -12,7 +12,7 @@
         "component": {
             "scripts": [
                 "js/google.js",
-                "js/facebook.js",
+                "js/facebook.js"
             ],
             "styles": [
                 
