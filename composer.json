@@ -2,12 +2,12 @@
     "name": "iubar/iubar-login",
     "type": "library",
     "require": {
-        "google/apiclient" : "*",
+		"google/apiclient" : "*",
 		"google/recaptcha": "~1.1",
 		"facebook/php-sdk-v4" : "^5.0",
 		"swiftmailer/swiftmailer" : "5.4.*",
-		 "robloach/component-installer": "*",
-		 "iubar/iubar-common": "0.1.0"
+		"robloach/component-installer": "*",
+		"iubar/iubar-common": "0.1.0"
     },
 	"extra": {
         "component": {
