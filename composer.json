@@ -5,8 +5,26 @@
         "google/apiclient" : "*",
 		"google/recaptcha": "~1.1",
 		"facebook/php-sdk-v4" : "^5.0",
-		"swiftmailer/swiftmailer" : "5.4.*"
+		"swiftmailer/swiftmailer" : "5.4.*",
+		 "robloach/component-installer": "*"
     },
+	"extra": {
+        "component": {
+            "scripts": [
+                "public/js/login.js"
+            ],
+            "styles": [
+                
+            ],
+            "files": [
+
+            ]
+        }
+    },
+	"config": {
+        "component-dir": "public/assets",
+        "component-baseurl": "/assets"
+    },    
     "autoload": {
         "psr-4": {
             "Iubar\\": "src/Iubar/"
