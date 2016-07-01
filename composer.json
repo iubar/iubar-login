@@ -6,7 +6,8 @@
 		"google/recaptcha": "~1.1",
 		"facebook/php-sdk-v4" : "^5.0",
 		"swiftmailer/swiftmailer" : "5.4.*",
-		 "robloach/component-installer": "*"
+		 "robloach/component-installer": "*",
+		 "iubar/iubar-common": "dev-master"
     },
 	"extra": {
         "component": {
