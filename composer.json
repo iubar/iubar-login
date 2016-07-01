@@ -7,7 +7,7 @@
 		"facebook/php-sdk-v4" : "^5.0",
 		"swiftmailer/swiftmailer" : "5.4.*",
 		 "robloach/component-installer": "*",
-		 "iubar/iubar-common": "dev-master"
+		 "iubar/iubar-common": "0.1.0"
     },
 	"extra": {
         "component": {
