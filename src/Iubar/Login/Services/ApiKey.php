@@ -2,7 +2,7 @@
 
 namespace Iubar\Login\Services;
 
-class ApiKeyUtils {
+class ApiKey {
 	
 	private static function generate(){
 		$api_key = null;
