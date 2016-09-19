@@ -1,13 +1,19 @@
 {
     "name": "iubar/iubar-login",
     "type": "library",
+    "repositories": [
+		{
+			"type": "git",
+			"url": "https://github.com/iubar/iubar-slim-core.git"
+		} 
+	],
     "require": {
 		"google/apiclient" : "*",
 		"google/recaptcha": "~1.1",
 		"facebook/php-sdk-v4" : "^5.0",
 		"swiftmailer/swiftmailer" : "5.4.*",
 		"robloach/component-installer": "*",
-		"iubar/iubar-common": "0.1.0"
+		"iubar/iubar-slim-core": "dev-master@dev"
     },
 	"extra": {
         "component": {
