@@ -35,7 +35,7 @@
     },    
     "autoload": {
         "psr-4": {
-            "Iubar\\": "src/Iubar/"
+            "Iubar\\Login\\": "src/Iubar/Login/"
         }
     }
 }
