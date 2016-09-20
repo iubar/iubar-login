@@ -6,7 +6,7 @@ use Iubar\Login\Models\Login as LoginModel;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Csrf;
 
-abstract class LoginAbstractController extends Iubar\Slim\Core\HtmlAbstractController {
+abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractController {
 	
 	public $app = null;
 	
