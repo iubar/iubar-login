@@ -2,13 +2,13 @@
 
 namespace Iubar\Login\Controllers;
 
-use Iubar\Login\Core\AbstractController;
+use Iubar\Login\Core\LoginAbstractController;
 use Iubar\Login\Models\Facebook as FacebookModel;
 use Iubar\Login\Models\Login as LoginModel;
 use Iubar\Login\Services\Session;
 
 
-class Facebook extends AbstractController {
+class Facebook extends LoginAbstractController {
 	
 	/**
 	 * Construct this object by extending the basic Controller class

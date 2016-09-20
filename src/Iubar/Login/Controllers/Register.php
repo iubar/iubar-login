@@ -2,13 +2,13 @@
 
 namespace Iubar\Login\Controllers;
 
-use Iubar\Login\Core\AbstractController;
+use Iubar\Login\Core\LoginAbstractController;
 use Iubar\Login\Models\Login;
 use Iubar\Login\Models\Registration;
 use Iubar\Login\Models\User;
 use Iubar\Login\Services\Encryption;
 
-class Register extends AbstractController {
+class Register extends LoginAbstractController {
 	
 	/**
 	 * Construct this object by extending the basic Controller class

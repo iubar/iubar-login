@@ -2,7 +2,7 @@
 
 namespace Application\Controllers\Login;
 
-use Application\Core\AbstractController;
+use Application\Core\LoginAbstractController;
 use Application\Models\Login\GoModel;
 use Application\Models\Login\UserModel;
 use Application\Models\Login\LoginModel;
@@ -10,7 +10,7 @@ use Application\Services\Session;
 use Application\Services\Login\Csrf;
 
 
-class Google extends AbstractController {
+class Google extends LoginAbstractController {
 	
 	/**
 	 * Construct this object by extending the basic Controller class

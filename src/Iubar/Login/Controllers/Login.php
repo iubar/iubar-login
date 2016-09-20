@@ -2,7 +2,7 @@
 
 namespace Iubar\Login\Controllers;
 
-use Iubar\Login\Core\AbstractController;
+use Iubar\Login\Core\LoginAbstractController;
 use Iubar\Login\Models\PasswordReset as PasswordResetModel;
 use Iubar\Login\Models\Login as LoginModel;
 use Iubar\Login\Services\Session;
@@ -10,7 +10,7 @@ use Iubar\Login\Services\Csrf;
 use Iubar\Login\Models\User as Usermodel;
 use Iubar\Login\Services\Encryption;
 
-class Login extends AbstractController {
+class Login extends LoginAbstractController {
 
 	/**
 	 * Construct this object by extending the basic Controller class
