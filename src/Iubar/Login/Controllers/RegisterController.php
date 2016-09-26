@@ -8,7 +8,7 @@ use Iubar\Login\Models\Registration;
 use Iubar\Login\Models\User;
 use Iubar\Login\Services\Encryption;
 
-class Register extends LoginAbstractController {
+class RegisterController extends LoginAbstractController {
 	
 	/**
 	 * Construct this object by extending the basic Controller class
@@ -29,12 +29,12 @@ class Register extends LoginAbstractController {
 			$data['feedback_positive'] = $this->getFeedbackPositiveMessages();
 			$data['feedback_negative'] = $this->getFeedbackNegativeMessages();
 			
-			$redirect = $this->app->request->get('redirect');
+			$redirect = $this->getRedirectUrl();
 			if ($redirect){
-				$data['redirect'] = $redirect;
+				$data['redirect'] = urlencode($redirect);
 			}
 			
-			$this->app->render('app/login/index.twig', $data);
+			$this->app->render($this->app->config('app.templates.path') . '/login/index.twig', $data);
 		}
 	}
 	
@@ -56,7 +56,7 @@ class Register extends LoginAbstractController {
 		$user_password_new = $this->app->request->post('user_password_new');
 		$user_password_repeat = $this->app->request->post('user_password_repeat');
 		$captcha = $this->app->request->post('g-recaptcha-response');
-		$redirect = $this->app->request->post('redirect');
+		$redirect = ltrim(urldecode($this->app->request->post('redirect')));
 		
 		$registration_successful = Registration::registerNewUser(
 			$user_name, 
@@ -73,17 +73,16 @@ class Register extends LoginAbstractController {
 			$login_successful = Login::login($user_name, $user_password_new, true, UserModel::PROVIDER_TYPE_DEFAULT);
 			
 			if($login_successful){
-				$redirect_url = AbstractController::$route_after_login;
+				$redirect_url = $this->app->config('auth.route.afterlogin');
 				if ($redirect){
-					$redirect_url = $this->app->config('app.baseurl') .'/login?redirect=' . $redirect;
+					$redirect_url = $this->app->config('app.baseurl') .'/login?redirect=' . urlencode($redirect);
 				}	
 			}
 			
 		} else {
 			$redirect_url = $this->app->config('app.baseurl') . '/register';
-			
 			if ($redirect){
-				$redirect_url .= '?redirect=' . $redirect;
+				$redirect_url .= '?redirect=' . urlencode($redirect);
 			}
 		}
 		
@@ -104,7 +103,7 @@ class Register extends LoginAbstractController {
 			if($success){
 				// TODO: valutare se inviare mail di benvenuto all'utente
 			}
-			$this->app->render('app/login/verify.twig', array(
+			$this->app->render($this->app->config('app.templates.path') . '/login/verify.twig', array(
 				'feedback_positive' => $this->getFeedbackPositiveMessages(), 
 				'feedback_negative' => $this->getFeedbackNegativeMessages()					
 			));

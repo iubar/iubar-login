@@ -158,15 +158,6 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 		}
 	}
 	
-	public function getRedirectUrl(){
-		$redirect = null;
-		if($this->app->request->get('redirect')){
-			$redirect = filter_var($redirect, FILTER_SANITIZE_URL); //This filter allows all letters, digits and $-_.+!*'(),{}|\\^~[]`"><#%;/?:@&=
-			$redirect = ltrim(urldecode($this->app->request->get('redirect')));
-		}
-		return $redirect;
-	}
-	
 	public function redirectAfterLogin($logged_in){
 		if ($logged_in) {
 			$this->redirectAfterSuccessfullyLogin();
@@ -175,23 +166,37 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 		}
 	}
 	
+	public function getRedirectUrl(){
+	    $redirect = $this->app->request->get('redirect');
+	    $redirect = $this->cleanUrl($redirect);
+	    return $redirect;
+	}
+	
+	private function cleanUrl($url){
+	    if($url){
+	        $url = filter_var($url, FILTER_SANITIZE_URL); //This filter allows all letters, digits and $-_.+!*'(),{}|\\^~[]`"><#%;/?:@&=
+	        $url = ltrim(urldecode($url));
+	    }
+	    return $url;
+	}
+	
 	private function redirectAfterLoginError(){
 		$this->app->log->debug("Login failed");
 		$this->redirectToLogin();
 	}
 	
 	protected function renderLogin(){
-		$redirect = $this->app->request->get('redirect');
+		$redirect = $this->getRedirectUrl();
 		// FIXME: mockup hard-coded
 		//$xml = "<xml><note><to>Tove</to><from>Jani</from><heading>Reminder</heading><body>Don't forget me this weekend!</body></note></xml>";
 		//$redirect = "/api/fattura/import-directly/" . XmlUtil::base64url_encode($xml); // dimensione massima consigliata 64k
 	
 		$csrf_token = Csrf::makeToken(); // https://en.wikipedia.org/wiki/Cross-site_request_forgery
 	
-		$this->app->render('app/login/index.twig', array(
+		$this->app->render($this->app->config('app.templates.path') . '/login/index.twig', array(
 				'type' => 1,
 				'captcha_key' => $this->app->config('captcha.key'),
-				'redirect' => $redirect,
+				'redirect' => urlencode($redirect),
 				'csrf_token' => $csrf_token,
 				'feedback_positive' => $this->getFeedbackPositiveMessages(),
 				'feedback_negative' => $this->getFeedbackNegativeMessages()
@@ -200,13 +205,10 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 	
 	protected function redirectAfterSuccessfullyLogin(){
 		$app = $this->app;
-		$redirect = $app->request->post('redirect');
-		if (!$redirect){
-			$redirect = $app->request->get('redirect');
-		}
+		$redirect = $this->cleanUrl($app->request->params('redirect'));
 		if ($redirect) {
 			$app->log->debug('login_successfully - redirecting to: ' . $redirect);
-			$app->redirect($app->config('app.baseurl') . ltrim(urldecode($redirect)));
+			$app->redirect($app->config('app.baseurl') . $redirect);
 			// TODO: Verificare se lo statement precedente lavora correttamente sia con indirizzi relativi che assoluti
 		} else {
 			$app->log->debug('login_successfully - deafult redirecting to: ' . $app->config('auth.route.afterlogin'));

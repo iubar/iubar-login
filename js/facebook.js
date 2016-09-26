@@ -1,6 +1,6 @@
   window.fbAsyncInit = function() {
 	  FB.init({
-	    appId      : '711000465694649',
+	    appId      : facebook_app_id,
 	    cookie     : true,  // enable cookies to allow the server to access the session
 	    xfbml      : true,  // parse social plugins on this page
 	 // status	   : true,	// Determines whether the current login status of the user is freshly retrieved on every page load. If this is disabled, that status will have to be manually retrieved using .getLoginStatus().

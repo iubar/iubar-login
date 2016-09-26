@@ -3,12 +3,12 @@
 namespace Iubar\Login\Controllers;
 
 use Iubar\Login\Core\LoginAbstractController;
-use Iubar\Login\Models\Facebook as FacebookModel;
+use Iubar\Login\Models\FacebookController as FacebookModel;
 use Iubar\Login\Models\Login as LoginModel;
 use Iubar\Login\Services\Session;
 
 
-class Facebook extends LoginAbstractController {
+class FacebookController extends LoginAbstractController {
 	
 	/**
 	 * Construct this object by extending the basic Controller class
@@ -20,32 +20,32 @@ class Facebook extends LoginAbstractController {
 	/**
 	* Index, default action (shows the login form), when you do login/index
 	*/
-	public function getLogin(){ // TODO: commentare l'utilità di questo metodo: quando andrebbe usato e da chi è invocato.
+	public function getLogin(){
 		$this->app->log->debug(get_class($this) . '->getLogin()');	
 		$logged_in = LoginModel::isUserLoggedIn();
-		
 		$redirect = $this->getRedirectUrl();
-		
 		// Auto login
-		if (!$logged_in) {
-							
+		if (!$logged_in) {			
 			if (Session::getDecoded(Session::FB_ACCESS_TOKEN)) {
-				
 				// In questo caso posso evitare di visualizzare la form di login "server-side"
 				// e provare a loggare direttamente l'utente
 				$this->app->log->debug("Access token is in session, go directly to the callback route");
-				$this->app->redirect($this->app->config('app.baseurl') .'/login/fb/callback' . '?redirect=' . $redirect);
+				$this->app->redirect($this->app->config('app.baseurl') .'/login/fb/callback' . '?redirect=' . urlencode($redirect));
 			}else{
 				$loginUrl = FacebookModel::getLoginUrl();
-				$this->app->render('fattura/login/external/fb_login_server_side.twig', array(
-						'redirect' => $redirect,
+				$this->app->render($this->app->config('app.templates.path') . '/login/external/fb_login_server_side.twig', array(
+						'redirect' => urlencode($redirect),
 						'login_url' => $loginUrl,
 						'feedback_positive' => $this->getFeedbackPositiveMessages(),
 						'feedback_negative' => $this->getFeedbackNegativeMessages()
 				));
 			}
 		}else{
-			$this->app->redirect($this->app->config('auth.route.afterlogin') . '?redirect=' . $redirect);
+		    $redirect_url = $this->app->config('auth.route.afterlogin');
+		    if ($redirect){
+		        $redirect_url .= '?redirect=' . urlencode($redirect);
+		    }
+		    $this->app->redirect($redirect_url);
 		}
 	}
 	
@@ -77,7 +77,6 @@ class Facebook extends LoginAbstractController {
 	public function getLoginCallbackFromJs(){
 		$this->app->log->debug(get_class($this) . '->getLoginCallbackFromJs()');
 		$login_successful = false;
-		// $redirect = $this->app->request->get('redirect'); // TODO: statement da rimuovere
 		if(Session::getDecoded(Session::FACEBOOK_ACCESS_TOKEN)){
 			$login_successful = FacebookModel::loginWithAccesstoken();
 		}else{
@@ -88,11 +87,11 @@ class Facebook extends LoginAbstractController {
 	
 	public function getLoginButton(){
 		$this->app->log->debug(get_class($this) . '->getLoginButton()');
-		$this->app->render('fattura/login/external/fb_button.twig', array());
+		$this->app->render($this->app->config('app.templates.path') . '/login/external/fb_button.twig', array());
 	}
 	public function getLogout(){
 		$this->app->log->debug(get_class($this) . '->getLogout()');
-		$this->app->render('fattura/login/external/fb_logout.twig', array());
+		$this->app->render($this->app->config('app.templates.path') . '/login/external/fb_logout.twig', array());
 	}
 
 }

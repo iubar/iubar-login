@@ -18,7 +18,7 @@
 
 	      // Retrieve the singleton for the GoogleAuth library and set up the client.
       auth2 =  gapi.auth2.init({
-	        client_id: '190362098327-35dp2uvme3i8tqnq2257nb7g6e7am9b6.apps.googleusercontent.com',
+	        client_id: google_client_id,
 	        cookiepolicy: 'single_host_origin', // default
 	        // fetch_basic_profile: true,
 	        // Request scopes in addition to 'profile' and 'email'        

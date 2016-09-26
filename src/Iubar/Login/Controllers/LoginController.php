@@ -4,13 +4,13 @@ namespace Iubar\Login\Controllers;
 
 use Iubar\Login\Core\LoginAbstractController;
 use Iubar\Login\Models\PasswordReset as PasswordResetModel;
-use Iubar\Login\Models\Login as LoginModel;
+use Iubar\Login\Models\LoginController as LoginModel;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Csrf;
 use Iubar\Login\Models\User as Usermodel;
 use Iubar\Login\Services\Encryption;
 
-class Login extends LoginAbstractController {
+class LoginController extends LoginAbstractController {
 
 	/**
 	 * Construct this object by extending the basic Controller class
@@ -93,7 +93,7 @@ class Login extends LoginAbstractController {
 	 */
 	public function getRequestPasswordReset(){
 		$this->app->log->debug(get_class($this).'->getRequestPasswordReset()');
-		$this->app->render('app/login/request-password-reset.twig', array(
+		$this->app->render($this->app->config('app.templates.path') . '/login/request-password-reset.twig', array(
 			'captcha_key' => $this->app->config('captcha.key'),
 			'feedback_positive' => $this->getFeedbackPositiveMessages(),
 			'feedback_negative' => $this->getFeedbackNegativeMessages()				
@@ -127,7 +127,7 @@ class Login extends LoginAbstractController {
 		$user_name = Encryption::decrypt($this->app->request->get("user_name"));
 		if (PasswordResetModel::verifyPasswordReset($user_name, $verification_code)) {
 			
-			$this->app->render('app/login/password-reset.twig', array(
+			$this->app->render($this->app->config('app.templates.path') . '/login/password-reset.twig', array(
 				'user_name' => $user_name,
 				'user_password_reset_hash' => $verification_code,
 				'feedback_positive' => $this->getFeedbackPositiveMessages(),

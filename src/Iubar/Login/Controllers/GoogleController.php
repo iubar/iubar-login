@@ -10,7 +10,7 @@ use Application\Services\Session;
 use Application\Services\Login\Csrf;
 
 
-class Google extends LoginAbstractController {
+class GoogleController extends LoginAbstractController {
 	
 	/**
 	 * Construct this object by extending the basic Controller class
@@ -25,7 +25,6 @@ class Google extends LoginAbstractController {
 	public function getLogin(){
 		$this->app->log->debug(get_class($this) . '->getLogin()');
 		$logged_in = LoginModel::isUserLoggedIn();
-		
 		// Auto login
 		if (!$logged_in) {
 			if (Session::getDecoded(Session::GOOGLE_BEARER_TOKEN)) {
@@ -38,30 +37,34 @@ class Google extends LoginAbstractController {
 			}else{
 				$redirect = $this->getRedirectUrl();
 				$loginUrl = GoModel::getLoginUrl();
-				$this->app->render('fattura/login/external/go_login_server_side.twig', array(
-						'redirect' => $redirect,
+				$this->app->render($this->app->config('app.templates.path') . '/login/external/go_login_server_side.twig', array(
+						'redirect' => urlencode($redirect),
 						'login_url' => $loginUrl,
 						'feedback_positive' => $this->getFeedbackPositiveMessages(),
 						'feedback_negative' => $this->getFeedbackNegativeMessages()
 				));
 			}
 		}else{
-			$this->app->redirect(AbstractController::$route_after_login);
+		    $redirect_url = $this->app->config('auth.route.afterlogin');
+		    if ($redirect){
+		        $redirect_url .= '?redirect=' . urlencode($redirect);
+		    }
+		    $this->app->redirect($redirect_url);
 		}
 		
 	}
 	
 	public function getLoginCustomButton(){
 		$this->app->log->debug(get_class($this) . '->getLoginCustomButton()');
-		$this->app->render('fattura/login/external/go_custom_button.twig', array());
+		$this->app->render($this->app->config('app.templates.path') . '/login/external/go_custom_button.twig', array());
 	}
 	public function getLoginButton(){
 		$this->app->log->debug(get_class($this) . '->getLoginButton()');
-		$this->app->render('fattura/login/external/go_button.twig', array());
+		$this->app->render($this->app->config('app.templates.path') . '/login/external/go_button.twig', array());
 	}
 	public function getLogout(){
 		$this->app->log->debug(get_class($this) . '->getLogout()');
-		$this->app->render('fattura/login/external/go_logout.twig', array());
+		$this->app->render($this->app->config('app.templates.path') . '/login/external/go_logout.twig', array());
 	}
 
 	public function getLoginCallback(){

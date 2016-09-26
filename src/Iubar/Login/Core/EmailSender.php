@@ -2,7 +2,7 @@
 
 namespace Iubar\Login\Core;
 
-class EmailSender extends \Iubar\Net\SmtpMailer {
+class EmailSender extends \Iubar\Net\SmtpMailer { // TODO: aggiornare
 	
 	public function __construct(){
 	
