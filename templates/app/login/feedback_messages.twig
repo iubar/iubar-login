@@ -1,0 +1,12 @@
+<!-- echo out the system feedback (error and success messages) -->
+{% for feedback in feedback_positive %}	
+	<div class="text-success">{{ htmlTransform(feedback) }}</div>
+{% endfor %}
+
+{% for feedback in feedback_negative %}	
+	<div class="text-danger">{{ htmlTransform(feedback) }}</div>
+{% endfor %}	
+
+<div id="social_fb_status" style="text-align: center;"></div>
+<div id="social_go_status" style="text-align: center;"></div>
+	

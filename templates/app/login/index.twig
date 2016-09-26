@@ -1,0 +1,109 @@
+{% set title = 'Login' %}
+{% block head %}
+	{{ parent() }}
+	<script type="text/javascript" src="{{ baseUrl() }}/public/js/controllers/login.js"></script>
+	<script type="text/javascript" src="{{ baseUrl() }}/components/iubar-login/js/facebook.js"></script>
+	<script src="https://apis.google.com/js/api:client.js"></script>
+	<script type="text/javascript" src="{{ baseUrl() }}/components/iubar-login/js/google.js"></script>
+{% endblock %}
+{% block content %}
+<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?hl=it" async defer></script>
+<div ng-controller="LoginCtrl" ng-init="tipo='{{ type }}';login_email='0'">
+	<div ng-show="tipo == 1">
+		<div class="login-box" style="border: 1px solid #003687">
+		 	<div class="login-box-body">
+				<div class="login-logo">
+		    		<a href="{{ baseUrl() }}"><b>Iubar</b>Presenze</a>
+		  		</div><!-- /login-logo -->
+		  		<div ng-show="login_email == 0">
+			 		<p class="login-box-msg">Accedi con</p>
+					<div style="text-align: center;">
+						<span id="social_img"></span>
+						{# <span id="social_status"></span> #}
+					</div>
+			 		<div class="social-auth-links text-center">
+			 			<button class="btn btn-lg btn-block btn-flat btn-social btn-warning" ng-click="login_email = 1" style="margin-bottom: 10px;">
+			      			<i class="fa fa-at"></i> Email
+			      		</button>
+			 			<a href="#" class="btn btn-lg btn-block btn-flat btn-social btn-facebook" onclick="fb_login();ga('send', 'event', 'click', 'login-facebook', 'Login facebook click');" style="margin-bottom: 10px;">
+			      			<i class="fa fa-facebook"></i> Facebook
+			      		</a>
+			      		<a id="customGoogleBtn" href="#" class="btn btn-lg btn-block btn-flat btn-social btn-google" onclick="ga('send', 'event', 'click', 'login-google', 'Login google click');" style="margin-bottom: 10px;">
+			      			<i class="fa fa-google-plus"></i> Google
+			      		</a>
+			 		</div>
+		 		</div>
+		    	<form method="post" action="{{ baseUrl() }}/login" ng-show="login_email == 1">
+		    		<div style="margin-bottom: 20px;">
+		    			<a href="#" ng-click="login_email = 0"><i class="fa fa-arrow-left"></i></a>
+		    		</div>
+		    		{% if redirect %}
+                        <input type="hidden" name="redirect" value="{{ redirect }}" />
+                    {% endif %}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+		      		<div class="form-group">
+		        		<input type="email" class="form-control" placeholder="Email" name="user_name" required>
+		      		</div>
+		      		<div class="form-group">
+		        		<input type="password" class="form-control" placeholder="Password" name="user_password" required>
+		        		<p class="text-right" style="font-size: 11px;"><a href="{{ baseUrl() }}/login/password-dimenticata">Ho dimenticato la password</a></p>
+		      		</div>
+		      		<div class="form-group">
+		        		<label>
+		        		 <input type="checkbox" name="set_remember_me_cookie" />
+		   					<span class="lbl padding-8">Ricordami</span>
+		            	</label>
+		      		</div>
+		      		<div class="text-center">
+		      			<button type="submit" class="btn btn-block btn-flat btn-success" onclick="ga('send', 'event', 'click', 'login-email', 'Login email click');">Accedi</button>
+		    		</div>
+		    	</form>
+		    	<div style="margin-top: 1px">
+{# 			    	{% include 'app/login/external/fb_login.twig' %}#}
+{# 					{% include 'app/login/external/go_login.twig' %}#}
+					{% include 'app/login/feedback_messages.twig' %} 
+				</div>		    	
+		    	<div class="text-center">
+					<hr style="border: 1px solid #999;">
+					Non hai un account? <a href="#" ng-click="tipo = 2">Crealo ora</a>
+		    	</div>
+		  	</div><!-- /login-box-body -->
+		</div><!-- /login-box -->
+	</div>
+	<div ng-show="tipo == 2">
+		<div class="register-box" style="border: 1px solid #003687">
+		  	<div class="register-box-body">
+		  		<div class="register-logo">
+		    		<a href="{{ baseUrl() }}"><b>Iubar</b>Presenze</a>
+		  		</div><!-- /register-logo -->
+		    	<p class="register-box-msg">Registrazione</p>
+		    	<form method="post" action="{{ baseUrl() }}/register">
+		    		{% if redirect %}
+                        <input type="hidden" name="redirect" value="{{ redirect }}" />
+                    {% endif %}
+		      		<div class="form-group">
+		        		<input type="email" class="form-control" placeholder="Email" name="user_email" required>
+		      		</div>
+		      		<div class="form-group">
+		        		<input type="password" class="form-control" placeholder="Password" name="user_password_new" required autocomplete="off">
+		      		</div>
+		      		<div class="form-group">
+		        		<input type="password" class="form-control" placeholder="Ripeti password" name="user_password_repeat" required autocomplete="off">
+		      		</div>
+		      		<div class="text-center"> 
+		      			<div class="g-recaptcha" data-callback="imNotARobot" data-sitekey="{{ captcha_key }}"></div>
+		      		</div>    
+		        	<div class="text-center">      		
+		      			<button type="submit" class="btn btn-block btn-flat btn-success" onclick="ga('send', 'event', 'click', 'register-email', 'Register email click');">Registrati</button>
+		    		</div>
+		    		{% include 'app/login/feedback_messages.twig' %}
+		    	</form>
+		    	<div class="text-center">
+		    		<hr style="border: 1px solid #999;">
+		    		<a href="#" ng-click="tipo = 1">Sono gi&agrave; registrato</a>
+		    	</div>
+		  	</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
