@@ -10,19 +10,19 @@ class EmailSender {
     private $m = null; 
     
 	public function __construct(){
-	    $this->app = \Slim\Slim::getInstance();
-	    $monolog_writer = $this->app ->config('log.writer');
-	    if ($monolog_writer !== null){
-	       $logger = $monolog_writer->get_resource();
-	    }else{
-	        die("\$monolog_writer IS NULL");
-	    }
-	    if($logger==null){
-	        die("LOGGER IS NULL");
-	    }
+// 	    $this->app = \Slim\Slim::getInstance();
+// 	    $monolog_writer = $this->app ->config('log.writer');
+// 	    if ($monolog_writer !== null){
+// 	       $logger = $monolog_writer->get_resource();
+// 	    }else{
+// 	        die("\$monolog_writer IS NULL");
+// 	    }
+// 	    if($logger==null){
+// 	        die("LOGGER IS NULL");
+// 	    }
 	    $this->m = SmtpMailer::factory('mailgun');
-	    $this->m->setLogger($logger);
-	    $this->m->enableAgentLogger(true);
+// 	    $this->m->setLogger($logger);
+// 	    $this->m->enableAgentLogger(true);
   
 	}
 	
