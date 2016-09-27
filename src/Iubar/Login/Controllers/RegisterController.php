@@ -3,9 +3,9 @@
 namespace Iubar\Login\Controllers;
 
 use Iubar\Login\Core\LoginAbstractController;
-use Iubar\Login\Models\Login;
-use Iubar\Login\Models\Registration;
-use Iubar\Login\Models\User;
+use Iubar\Login\Models\Login as LoginModel;
+use Iubar\Login\Models\Registration as RegistrationModel;
+use Iubar\Login\Models\User as UserModel;
 use Iubar\Login\Services\Encryption;
 
 class RegisterController extends LoginAbstractController {
@@ -19,7 +19,7 @@ class RegisterController extends LoginAbstractController {
 	
 	public function getRegister(){
 		$this->app->log->debug(get_class($this).'->getRegister()');
-		if (Login::isUserLoggedIn()) {
+		if (LoginModel::isUserLoggedIn()) {
 			$this->app->redirect(AbstractController::$route_after_login);
 		} else {
 
@@ -58,7 +58,7 @@ class RegisterController extends LoginAbstractController {
 		$captcha = $this->app->request->post('g-recaptcha-response');
 		$redirect = ltrim(urldecode($this->app->request->post('redirect')));
 		
-		$registration_successful = Registration::registerNewUser(
+		$registration_successful = RegistrationModel::registerNewUser(
 			$user_name, 
 			$user_email,
 			$user_email_repeat,
@@ -70,7 +70,7 @@ class RegisterController extends LoginAbstractController {
 		$redirect_url = null;
 		if ($registration_successful) {
 			
-			$login_successful = Login::login($user_name, $user_password_new, true, UserModel::PROVIDER_TYPE_DEFAULT);
+			$login_successful = LoginModel::login($user_name, $user_password_new, true, UserModel::PROVIDER_TYPE_DEFAULT);
 			
 			if($login_successful){
 				$redirect_url = $this->app->config('auth.route.afterlogin');
@@ -99,7 +99,7 @@ class RegisterController extends LoginAbstractController {
 		$this->app->log->debug(get_class($this).'->getVerify()');
 		$user_name = Encryption::decrypt($this->app->request->get("user_name"));
 		if (isset($user_name) && isset($ua_verification_code)) {			
-			$success = Registration::verifyNewUser($user_name, $ua_verification_code);
+			$success = RegistrationModel::verifyNewUser($user_name, $ua_verification_code);
 			if($success){
 				// TODO: valutare se inviare mail di benvenuto all'utente
 			}

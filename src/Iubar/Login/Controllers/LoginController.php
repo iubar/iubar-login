@@ -4,7 +4,7 @@ namespace Iubar\Login\Controllers;
 
 use Iubar\Login\Core\LoginAbstractController;
 use Iubar\Login\Models\PasswordReset as PasswordResetModel;
-use Iubar\Login\Models\LoginController as LoginModel;
+use Iubar\Login\Models\Login as LoginModel;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Csrf;
 use Iubar\Login\Models\User as Usermodel;
