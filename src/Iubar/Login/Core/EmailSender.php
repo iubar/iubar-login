@@ -2,32 +2,61 @@
 
 namespace Iubar\Login\Core;
 
-class EmailSender extends \Iubar\Net\SmtpMailer { // TODO: aggiornare
-	
+use Iubar\Net\SmtpMailer;
+
+class EmailSender {
+   
+    private $app = null;
+    private $m = null; 
+    
 	public function __construct(){
-	
+	    $this->app = \Slim\Slim::getInstance();
+	    $monolog_writer = $this->app ->config('log.writer');
+	    if ($monolog_writer !== null){
+	       $logger = $monolog_writer->get_resource();
+	    }else{
+	        die("\$monolog_writer IS NULL");
+	    }
+	    if($logger==null){
+	        die("LOGGER IS NULL");
+	    }
+	    $this->m = SmtpMailer::factory('mailgun');
+	    $this->m->setLogger($logger);
+	    $this->m->enableAgentLogger(true);
+  
 	}
 	
 	public function go($transactional = false){
-		$b = false;
-
-		$app = \Slim\Slim::getInstance();
-		
-		if (count($this->from_array) <= 0 || $this->from_array == null){
-			if ($transactional){
-				$this->setFrom($app->config('email.transactional'), $app->config('app.name'));
-			} else {
-				$this->setFrom($app->config('email.postmaster'), $app->config('app.name'));
-			}
-			$this->setSmtpUser($app->config('email.smtp'));
-			$this->setSmtpPassword($app->config('email.mailgun.password'));
-		}
-		
-		$result = $this->sendByMailgun($app->config('email.smtp.port'));
-		if ($result > 0){
-			$b = true;
-		}
-		
-		return $b;
+	    if (count($this->m->from_array) <= 0 || $this->m->from_array == null){
+	        if ($transactional){
+	            $this->setFrom($app->config('email.transactional'), $app->config('app.name'));
+	        } else {
+	            $this->setFrom($app->config('email.postmaster'), $app->config('app.name'));
+	        }
+	        $this->setSmtpUser($app->config('email.smtp'));
+	        $this->setSmtpPassword($app->config('email.mailgun.password'));
+	    }
+	    
+ 	    $this->m->smtp_usr  = $this->app ->config('email.user');
+	    $this->m->smtp_pwd = $this->app ->config('email.mailgun.password');
+	    $this->m->smtp_port = $this->app ->config('email.smtp.port');
+		return $this->m->send();
+	}
+	
+	public function setFrom($from_email, $from_name){
+	    $this->m->setFrom($from_email, $from_name);
+	}
+	
+	public function setTo($to){
+	    $this->m->setTo($to);
+	}
+	
+	public function setSubject($subject){
+	    $this->m->setSubject($subject);
+	}
+	
+	public function setBodyHtml($message){
+	    $this->m->setBodyHtml($message);
 	}	
+	
 }
