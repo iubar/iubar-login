@@ -29,17 +29,17 @@ class EmailSender {
 	public function go($transactional = false){
 	    if (count($this->m->from_array) <= 0 || $this->m->from_array == null){
 	        if ($transactional){
-	            $this->setFrom($app->config('email.transactional'), $app->config('app.name'));
+	            $this->setFrom($this->app->config('email.transactional'), $this->app->config('app.name'));
 	        } else {
-	            $this->setFrom($app->config('email.postmaster'), $app->config('app.name'));
+	            $this->setFrom($this->app->config('email.postmaster'), $this->app->config('app.name'));
 	        }
-	        $this->setSmtpUser($app->config('email.smtp'));
-	        $this->setSmtpPassword($app->config('email.mailgun.password'));
+	        $this->setSmtpUser($this->app->config('email.smtp'));
+	        $this->setSmtpPassword($this->app->config('email.mailgun.password'));
 	    }
 	    
- 	    $this->m->smtp_usr  = $this->app ->config('email.user');
-	    $this->m->smtp_pwd = $this->app ->config('email.mailgun.password');
-	    $this->m->smtp_port = $this->app ->config('email.smtp.port');
+ 	    $this->m->smtp_usr  = $this->app->config('email.user');
+	    $this->m->smtp_pwd = $this->app->config('email.mailgun.password');
+	    $this->m->smtp_port = $this->app->config('email.smtp.port');
 		return $this->m->send();
 	}
 	
