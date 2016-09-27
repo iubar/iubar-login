@@ -33,11 +33,9 @@ class EmailSender {
 	        } else {
 	            $this->setFrom($this->app->config('email.postmaster'), $this->app->config('app.name'));
 	        }
-	        $this->setSmtpUser($this->app->config('email.smtp'));
-	        $this->setSmtpPassword($this->app->config('email.mailgun.password'));
 	    }
 	    
- 	    $this->m->smtp_usr  = $this->app->config('email.user');
+ 	    $this->m->smtp_usr = $this->app->config('email.user');
 	    $this->m->smtp_pwd = $this->app->config('email.mailgun.password');
 	    $this->m->smtp_port = $this->app->config('email.smtp.port');
 		return $this->m->send();
