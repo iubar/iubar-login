@@ -5,7 +5,11 @@
 		{
 			"type": "git",
 			"url": "https://github.com/iubar/iubar-slim-core.git"
-		} 
+		},
+		{
+			"type": "git",
+			"url": "https://github.com/iubar/iubar-php-common.git"
+		}
 	],
     "require": {
 		"google/apiclient" : "*",
@@ -13,7 +17,8 @@
 		"facebook/php-sdk-v4" : "^5.0",
 		"swiftmailer/swiftmailer" : "*",
 		"robloach/component-installer": "*",
-		"iubar/iubar-slim-core": "dev-master@dev"
+		"iubar/iubar-slim-core": "dev-master@dev",
+		"iubar/iubar-php-common": "dev-master@dev"
     },
 	"extra": {
         "component": {
