@@ -10,7 +10,7 @@ class EmailSender {
     private $m = null; 
     
 	public function __construct(){
-// 	    $this->app = \Slim\Slim::getInstance();
+	    $this->app = \Slim\Slim::getInstance();
 // 	    $monolog_writer = $this->app ->config('log.writer');
 // 	    if ($monolog_writer !== null){
 // 	       $logger = $monolog_writer->get_resource();
