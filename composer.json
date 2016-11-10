@@ -12,7 +12,7 @@
 		}
 	],
     "require": {
-		"google/apiclient" : "*",
+		"google/apiclient" : "1.1.7",
 		"google/recaptcha": "~1.1",
 		"facebook/php-sdk-v4" : "^5.0",
 		"swiftmailer/swiftmailer" : "*",

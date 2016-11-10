@@ -67,26 +67,12 @@ class RegisterController extends LoginAbstractController {
 			$captcha,
 			UserModel::PROVIDER_TYPE_DEFAULT);
 		
-		$redirect_url = null;
-		if ($registration_successful) {
-			
-			$login_successful = LoginModel::login($user_name, $user_password_new, true, UserModel::PROVIDER_TYPE_DEFAULT);
-			
-			if($login_successful){
-				$redirect_url = $this->app->config('auth.route.afterlogin');
-				if ($redirect){
-					$redirect_url = $this->app->config('app.baseurl') .'/login?redirect=' . urlencode($redirect);
-				}	
-			}
-			
+        if ($registration_successful) {			
+			$login_successful = LoginModel::login($user_name, $user_password_new, true, UserModel::PROVIDER_TYPE_DEFAULT);			
+			$this->redirectAfterLogin($login_successful);			
 		} else {
-			$redirect_url = $this->app->config('app.baseurl') . '/register';
-			if ($redirect){
-				$redirect_url .= '?redirect=' . urlencode($redirect);
-			}
+			$app->redirect($app->config('app.baseurl') . '/register');
 		}
-		
-		$this->app->redirect($redirect_url);
 	}
 	
 
