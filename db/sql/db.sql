@@ -8,19 +8,15 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
 -- -----------------------------------------------------
--- Schema presenze
+-- Schema login
 -- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `login` DEFAULT CHARACTER SET utf8 ;
+USE `login` ;
 
 -- -----------------------------------------------------
--- Schema presenze
+-- Table `User`
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `presenze` DEFAULT CHARACTER SET utf8 ;
-USE `presenze` ;
-
--- -----------------------------------------------------
--- Table `presenze`.`User`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `presenze`.`User` (
+CREATE TABLE IF NOT EXISTS `User` (
   `Username` VARCHAR(255) NOT NULL,
   `Email` VARCHAR(64) NULL,
   `LastLogin` DATETIME NULL,
@@ -47,9 +43,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `presenze`.`UserExternal`
+-- Table `UserExternal`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `presenze`.`UserExternal` (
+CREATE TABLE IF NOT EXISTS `UserExternal` (
   `Id` VARCHAR(255) NOT NULL,
   `Display` VARCHAR(255) NULL,
   `FirstName` VARCHAR(64) NULL,
@@ -64,63 +60,6 @@ CREATE TABLE IF NOT EXISTS `presenze`.`UserExternal` (
   `AccessTokenExpireAt` DATETIME NULL,
   `ProviderType` VARCHAR(10) NULL,
   PRIMARY KEY (`Id`))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `presenze`.`ContrattoDettaglio`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `presenze`.`ContrattoDettaglio` (
-  `IdContrattoDettaglio` INT NOT NULL,
-  `Descrizione` VARCHAR(200) NULL,
-  `Edr` DECIMAL(15,6) NULL,
-  `TredicesimaMese` SMALLINT NULL,
-  `TredicesimaGiorno` SMALLINT NULL,
-  `QuattordicesimaMese` SMALLINT NULL,
-  `QuattordicesimaGiorno` SMALLINT NULL,
-  `IstitutoScatti` SMALLINT(1) NULL,
-  `BancaOre` SMALLINT(1) NULL,
-  `StraordinariLimiteOreAnno` DECIMAL(6,2) NULL,
-  `StraordinariLimiteOreMese` DECIMAL(6,2) NULL,
-  `StraordinariLimiteOreSettimana` DECIMAL(6,2) NULL,
-  `StraordinariLimiteOreGiorno` DECIMAL(6,2) NULL,
-  `ScattiMese` SMALLINT NULL,
-  `ScattiNumero` SMALLINT NULL,
-  `Contingenza` SMALLINT NULL,
-  `IntegrazCongedoMatr` DECIMAL(7,6) NULL,
-  `AssenzaCalcArrotondato` SMALLINT(1) NULL,
-  `AssenzaCalcEffettivo` SMALLINT(1) NULL,
-  `UltimaModifica` TIMESTAMP NULL,
-  `UltimaModificaUser` VARCHAR(50) NULL,
-  `Custom` SMALLINT(1) NULL,
-  PRIMARY KEY (`IdContrattoDettaglio`))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `presenze`.`ContrattoMaggiorazione`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `presenze`.`ContrattoMaggiorazione` (
-  `IdContrattoMaggiorazione` INT NOT NULL,
-  `IdContrattoDettaglio` INT NOT NULL,
-  `LimiteOreAnno` DECIMAL(6,2) NULL,
-  `LimiteOreMese` DECIMAL(6,2) NULL,
-  `LimiteOreSettimana` DECIMAL(6,2) NULL,
-  `LimiteOreGiorno` DECIMAL(6,2) NULL,
-  `Importo` DECIMAL(15,6) NULL,
-  `Maggiorazione` DECIMAL(7,6) NULL,
-  `Descrizione` VARCHAR(200) NULL,
-  `ValidoDal` DATE NULL,
-  `ValidoAl` DATE NULL,
-  `Note` VARCHAR(2000) NULL,
-  `Custom` SMALLINT NULL,
-  PRIMARY KEY (`IdContrattoMaggiorazione`, `IdContrattoDettaglio`),
-  INDEX `fk_ContrattoMaggiorazione_ContrattoDettaglio1_idx` (`IdContrattoDettaglio` ASC),
-  CONSTRAINT `fk_ContrattoMaggiorazione_ContrattoDettaglio1`
-    FOREIGN KEY (`IdContrattoDettaglio`)
-    REFERENCES `presenze`.`ContrattoDettaglio` (`IdContrattoDettaglio`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
