@@ -17,10 +17,10 @@
   var initSigninV2 = function(){
 
 	      // Retrieve the singleton for the GoogleAuth library and set up the client.
-      auth2 =  gapi.auth2.init({
+      auth2 = gapi.auth2.init({
 	        client_id: google_client_id,
 	        cookiepolicy: 'single_host_origin', // default
-	        // fetch_basic_profile: true,
+	        // fetch_basic_profile: true,  // default
 	        // Request scopes in addition to 'profile' and 'email'        
 	       //scope: 'additional_scope'
 	     //  scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
@@ -32,6 +32,7 @@
 
  console.log("option = " + global_option);
  if(global_option==1){
+	// Attach the click handler to the sign-in button
  	auth2.attachClickHandler('customGoogleBtn', {}, onSuccess, onFailure);
  }
 
@@ -68,7 +69,7 @@ if (isSignedIn != true) {
       console.log('Signed in as ' + user.getBasicProfile().getName());
 	//	document.getElementById('social_status').innerText = "Signed in: " + googleUser.getBasicProfile().getName();
 		if (auth2.isSignedIn.get()) {
-			onSignIn(user);
+			signIn(user);
 		}else{
 			console.log("******* SITUAZIONE IMPREVISTA ********");
 			}
@@ -83,22 +84,37 @@ if (isSignedIn != true) {
     alert(JSON.stringify(error));
   };
  
-  function onSignIn(googleUser) {
-	  console.log("onSignIn()");
+   var revokeAllScopes = function() {
+	var auth2 = gapi.auth2.getAuthInstance();
+    auth2.disconnect();
+  }
+  
+ function signOut() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+      console.log('User signed out.');
+    });
+	// revokeAllScopes();
+  }
+   
+  function signIn(googleUser) {
+	  console.log("signIn()");
 		logProfile();
- 		 var id_token = googleUser.getAuthResponse().id_token;
-		 var access_token = googleUser.getAuthResponse().access_token; // Questo token da ora in poi non ha alcun utilizzo pratico
-		 console.log(JSON.stringify(googleUser.getAuthResponse()));
-
-		 var url = "login/google/callback?id_token=" + id_token + "&bearer_token=" + JSON.stringify(googleUser.getAuthResponse()); 
+		 var response = googleUser.getAuthResponse();
+ 		 var id_token = response.id_token;
+		 var access_token = response.access_token; // Questo token da ora in poi non ha alcun utilizzo pratico
+		 console.log('response: ' + JSON.stringify(response));
+		 console.log('id_token: ' + JSON.stringify(response));
+		 console.log('access_token: ' + JSON.stringify(response)); // TODO: verificarne il valore (mi aspetto null)
+		 var url = "login/google/callback?id_token=" + JSON.stringify(id_token); 
 		 var redirect = getParameterByName('redirect');
 
 		 if (redirect != null){
 			url = url + "&redirect=" + redirect;
 		}
 	   				 
-		 window.location.replace(url);
-		  // window.location.replace("login/google/callback?id_token=" + id_token + "&access_token=" + JSON.stringify(access_token) + "&test=" + JSON.stringify(googleUser.getAuthResponse()));		
+		window.location.replace(url); // see https://developers.google.com/identity/sign-in/web/backend-auth
+		 
 	}
 
  ///////////////////////////// LISTENERS

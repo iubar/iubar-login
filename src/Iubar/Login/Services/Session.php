@@ -4,7 +4,9 @@ namespace Iubar\Login\Services;
 
 use Iubar\Login\Core\DbResource;
 use Iubar\Login\Models\User as UserModel;
+use Iubar\Login\Models\AbstractLogin;
 use Iubar\Login\Services\Filter;
+
 
 /**
  * Session class
@@ -38,9 +40,11 @@ class Session {
 	
 	// GOOGLE
 	const GOOGLE_ID = 'google_id';
-	const GOOGLE_BEARER_TOKEN = 'google_bearer_token';
+	const GOOGLE_JWT_TOKEN = 'google_jwt_token';	
 	const GOOGLE_DISPLAY_NAME = 'google_display_name';
 	const GOOGLE_PICTURE = 'google_picture';
+	const GOOGLE_ACCESS_TOKEN = 'google_access_token';
+	const GOOGLE_REFRESH_TOKEN = 'google_refresh_token';
 	
 	// CUSTOM
 	const SESSION_DISPLAY_NAME = 'display_name';
@@ -55,13 +59,16 @@ class Session {
         	// You should also disable PHP’s session cache limiter so that PHP does not send conflicting cache expiration headers with the HTTP response
         	session_cache_limiter(false); // vedi http://docs.slimframework.com/sessions/native/
             session_start();
-            \Slim\Slim::getInstance()->log->debug("Session start: " . session_name() . " id: " . session_id());
+            self::getLogger()->debug("Session start: " . session_name() . " id: " . session_id());
         }else{
-        	\Slim\Slim::getInstance()->log->debug("Session already started: " . session_name() . " status: " . session_status() . " id: " . session_id());
+        	self::getLogger()->debug("Session already started: " . session_name() . " status: " . session_status() . " id: " . session_id());
         }
     }
-
     
+	protected function getLogger(){
+		return AbstractLogin::getLogger();
+	}
+	
     public static function regenerateId(){
     	// remove old and regenerate session ID.
     	// It's important to regenerate session on sensitive actions,
@@ -76,7 +83,7 @@ class Session {
     	
     	if(session_status() === PHP_SESSION_ACTIVE){
     		session_regenerate_id(true); 
-    		\Slim\Slim::getInstance()->log->debug("Session id was regenerated: " . session_name() . " id: " . session_id());
+    		self::getLogger()->debug("Session id was regenerated: " . session_name() . " id: " . session_id());
     	}else{
     		die("regenerateId(): error, status is " . session_status());
     	}
@@ -157,7 +164,7 @@ class Session {
     		
 	//if (session_id()) {
     if(session_status() === PHP_SESSION_ACTIVE){	
-		\Slim\Slim::getInstance()->log->debug("Destroying session: " . session_name() . " id: " . session_id());
+		self::getLogger()->debug("Destroying session: " . session_name() . " id: " . session_id());
 		try {
 	    	session_destroy();
 		}catch (\Exception $e){
@@ -165,7 +172,7 @@ class Session {
 			throw new \Exception($msg);
 		}
 	}else{
-		\Slim\Slim::getInstance()->log->debug("No session to destroy");
+		self::getLogger()->debug("No session to destroy");
 	}
     }
 
@@ -214,8 +221,8 @@ class Session {
 	        $session_id = session_id();
 	        $userName   = Session::getDecoded(Session::SESSION_USER_NAME);
 	
-	        // \Slim\Slim::getInstance()->log->debug("\$session_id : " . $session_id);
-	        // \Slim\Slim::getInstance()->log->debug("\$userName : " . $userName);
+	        // self::getLogger()->debug("\$session_id : " . $session_id);
+	        // self::getLogger()->debug("\$userName : " . $userName);
 	        if(isset($userName) && isset($session_id)){
 	        	$userSessionId = null;
 	        	$dql =  "SELECT u FROM " . UserModel::TABLE_NAME . " u WHERE u.username = '" . $userName . "'";
@@ -228,13 +235,13 @@ class Session {
 				//if(!empty($result)){ // Questo statement è un bug nel codice originale di PANIQUE (lasciare qui il commento)
 	            	$userSessionId =  $user->getSessionid();
 				}
-				// \Slim\Slim::getInstance()->log->debug("\$userSessionId : " . $userSessionId);
+				// self::getLogger()->debug("\$userSessionId : " . $userSessionId);
 				if($userSessionId && $session_id !== $userSessionId){
 	            	$b = true;
 				}
 	        }
 		}
-        // \Slim\Slim::getInstance()->log->debug("isConcurrentSessionExists: " . $b);
+        // self::getLogger()->debug("isConcurrentSessionExists: " . $b);
         return $b;
     }
 

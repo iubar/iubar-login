@@ -23,11 +23,11 @@ class LoginController extends LoginAbstractController {
 	* Index, default action (shows the login form), when you do login/index
 	*/
 	public function getLogin(){
-		$this->app->log->debug(get_class($this).'->getLogin()');
+		$this->logger->debug(get_class($this).'->getLogin()');
 		// if user is logged in redirect to main-page, if not show the view
 		$logged_in = LoginModel::isUserLoggedIn();
 		if($logged_in){
-			$this->app->log->debug("Already logged-in, redirecting...");			 
+			$this->logger->debug("Already logged-in, redirecting...");			 
 			$this->redirectAfterSuccessfullyLogin();
 		}else{
 			$this->renderLogin();
@@ -38,10 +38,10 @@ class LoginController extends LoginAbstractController {
 	 * The login action, when you do login/login
 	 */
 	public function postLogin(){ // Il metodo è utilizzato solo per il login con email
-		$this->app->log->debug(get_class($this).'->postLogin()');
+		$this->logger->debug(get_class($this).'->postLogin()');
 		
 		// check if csrf token is valid
-		$token = $this->app->request->post(Session::SESSION_CSRF_TOKEN);
+		$token = $this->post(Session::SESSION_CSRF_TOKEN);
 		if (!Csrf::isTokenValid($token)) {
 			LoginModel::logout();
 			$this->redirectHome();
@@ -50,9 +50,9 @@ class LoginController extends LoginAbstractController {
 		
 		// perform the login method, put result (true or false) into $login_successful
 		$login_successful = LoginModel::login(
-			$this->app->request->post('user_name'), 
-			$this->app->request->post('user_password'), 
-			$this->app->request->post('set_remember_me_cookie'),
+			$this->post('user_name'), 
+			$this->post('user_password'), 
+			$this->post('set_remember_me_cookie'),
 			UserModel::PROVIDER_TYPE_DEFAULT
 		);
 		
@@ -65,7 +65,7 @@ class LoginController extends LoginAbstractController {
 	 * Perform logout, redirect user to main-page
 	 */
 	public function getLogout(){
-		$this->app->log->debug(get_class($this).'->getLogout()');
+		$this->logger->debug(get_class($this).'->getLogout()');
 		LoginModel::logout();
 		$this->redirectHome();
 		exit();
@@ -75,9 +75,9 @@ class LoginController extends LoginAbstractController {
 	 * Login with cookie
 	 */
 	public function getLoginWithCookie(){
-		$this->app->log->debug(get_class($this).'->getLoginWithCookie()');
+		$this->logger->debug(get_class($this).'->getLoginWithCookie()');
 		// run the loginWithCookie() method in the login-model, put the result in $login_successful (true or false)
-		$login_successful = LoginModel::loginWithCookie($this->app->getCookie('remember_me'));
+		$login_successful = LoginModel::loginWithCookie($this->getCookie('remember_me'));
 		// if login successful, redirect to dashboard/index ...
 		if ($login_successful) {
 			$this->redirectAfterSuccessfullyLogin();
@@ -92,9 +92,9 @@ class LoginController extends LoginAbstractController {
 	 * Show the request-password-reset page
 	 */
 	public function getRequestPasswordReset(){
-		$this->app->log->debug(get_class($this).'->getRequestPasswordReset()');
-		$this->app->render($this->app->config('app.templates.path') . '/login/request-password-reset.twig', array(
-			'captcha_key' => $this->app->config('captcha.key'),
+		$this->logger->debug(get_class($this).'->getRequestPasswordReset()');
+		$this->render($this->config('app.templates.path') . '/login/request-password-reset.twig', array(
+			'captcha_key' => $this->config('captcha.key'),
 			'feedback_positive' => $this->getFeedbackPositiveMessages(),
 			'feedback_negative' => $this->getFeedbackNegativeMessages()				
 		));
@@ -105,13 +105,13 @@ class LoginController extends LoginAbstractController {
 	 * POST-request after form submit
 	 */
 	public function postRequestPasswordReset(){
-		$this->app->log->debug(get_class($this).'->postRequestPasswordReset()');
-		$user_name_or_email = strip_tags($this->app->request->post('user_name_or_email'));
-		$captcha = $this->app->request->post('g-recaptcha-response');
+		$this->logger->debug(get_class($this).'->postRequestPasswordReset()');
+		$user_name_or_email = strip_tags($this->post('user_name_or_email'));
+		$captcha = $this->post('g-recaptcha-response');
 		PasswordResetModel::requestPasswordReset(
 				$user_name_or_email,
 				$captcha);
-		$this->app->redirect($this->app->config('app.baseurl') .'/login/password-dimenticata');
+		$this->redirect($this->config('app.baseurl') .'/login/password-dimenticata');
 		// ...oppure $this->redirectToLogin(); // TODO: commentare le differenze
 		
 	}
@@ -122,12 +122,12 @@ class LoginController extends LoginAbstractController {
 	 * @param string $verification_code password reset verification token
 	 */
 	public function getVerifyPasswordReset($verification_code){
-		$this->app->log->debug(get_class($this).'->getVerifyPasswordReset()');
+		$this->logger->debug(get_class($this).'->getVerifyPasswordReset()');
 		// check if this the provided verification code fits the user's verification code
-		$user_name = Encryption::decrypt($this->app->request->get("user_name"));
+		$user_name = Encryption::decrypt($this->get("user_name"));
 		if (PasswordResetModel::verifyPasswordReset($user_name, $verification_code)) {
 			
-			$this->app->render($this->app->config('app.templates.path') . '/login/password-reset.twig', array(
+			$this->render($this->config('app.templates.path') . '/login/password-reset.twig', array(
 				'user_name' => $user_name,
 				'user_password_reset_hash' => $verification_code,
 				'feedback_positive' => $this->getFeedbackPositiveMessages(),
@@ -135,9 +135,9 @@ class LoginController extends LoginAbstractController {
 			));	
 		} else {
 			$this->redirectToLogin();
+	/**
 		}
 	}
-	/**
 	 * Set the new password
 	 * Please note that this happens while the user is not logged in. The user identifies via the data provided by the
 	 * password reset link from the email, automatically filled into the <form> fields. See verifyPasswordReset()
@@ -146,10 +146,10 @@ class LoginController extends LoginAbstractController {
 	 * TODO this is an _action
 	 */
 	public function postNewPassword(){
-		$this->app->log->debug(get_class($this).'->postNewPassword()');
+		$this->logger->debug(get_class($this).'->postNewPassword()');
 		PasswordResetModel::setNewPassword(
-				$this->app->request->post('user_name'), $this->app->request->post('user_password_reset_hash'),
-				$this->app->request->post('user_password_new'), $this->app->request->post('user_password_repeat')
+				$this->post('user_name'), $this->post('user_password_reset_hash'),
+				$this->post('user_password_new'), $this->post('user_password_repeat')
 				);
 		$this->redirectToLogin();
 	}

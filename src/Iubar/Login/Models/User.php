@@ -3,14 +3,16 @@
 namespace Iubar\Login\Models;
 
 use Iubar\Login\Core\DbResource;
-use Iubar\Login\Models\AvatarModel;
-use Iubar\Login\Services\Login\Config;
+use Iubar\Login\Models\Avatar as AvatarModel;
+use Iubar\Login\Models\External as ExternalModel;
+use Iubar\Login\Models\Registration
+use Iubar\Login\Models\AbstractLogin;
 use Iubar\Login\Services\Session;
-use Iubar\Login\Services\Login\Text;
-use Iubar\Login\Services\Login\Filter;
-use Iubar\Login\Models\Login\ExternalModel;
+use Iubar\Login\Services\Text;
+use Iubar\Login\Services\Filter;
 
-class User {
+
+class User extends AbstractLogin {
 	
 	// DEFAULT is the marker for "normal" accounts (that have a password etc.)
 	// There are other types of accounts that don't have passwords etc. (FACEBOOK)
@@ -19,16 +21,23 @@ class User {
 	const PROVIDER_TYPE_GO = 'GOOGLE';
 		
 	const TABLE_NAME = 'Application\Models\User';
-
+	const FILTER_CALLBACK_FUNC = '\Iubar\Login\Services\Filter::XSSFilter';
+		
+	public static function isAdmin(){
+		$b = false;
+		$user = self::getCurrentLogged();
+		if ($user !== null){
+			if ($user->getAccounttype() == UserRole::ADMIN){
+				$b = true;
+			}
+		}		
+		return $b;
+	}
+	
 	public static function getAll(){
 		return DbResource::getEntityManager()->createQuery("SELECT u FROM " . self::TABLE_NAME . " u")->getResult();
 	}
 	
-	/**
-	 * 
-	 * @param int $id
-	 * @return \Application\Models\Utente
-	 */
 // 	public static function getById($user_id){
 // 		$utente = null;
 // 		if ($id !== null){
@@ -36,15 +45,15 @@ class User {
 // 		}
 // 		return $utente;
 // 	}
-	
-	/**
-	 *
-	 * @param string $username
-	 * @return \Application\Models\User
-	 */
+	 
 	public static function getByUsername($username){		 
-		$result = DbResource::getEntityManager()->createQuery("SELECT u FROM " . self::TABLE_NAME . " u WHERE u.username = '" . $username . "'")->getResult();
+		$result = DbResource::getEntityManager()->createQuery(
+			"SELECT u FROM " . self::TABLE_NAME . " u WHERE u.username = '" . $username . "'"
+		)->getResult();
 		return array_shift($result);
+		// oppure
+		// $user = DbResource::getEntityManager()->find(self::TABLE_NAME, $username);
+		// return $user;
 	}
 		
 	/**
@@ -63,11 +72,9 @@ class User {
 		$user = self::getByUsername($str);
 		if ($user === null){
 			$user = self::getByEmail($str);
-		}
-		
+		}		
 		return $user;
 	}
-	
 		
  /**
      * Gets the user's data by user's id and a token (used by login-via-cookie process)
@@ -100,17 +107,12 @@ class User {
      * @return array The profiles of all users
      */
     public static function getPublicProfilesOfAllUsers(){
+		$all_users_profiles = array();
     	$dql = "SELECT u FROM " . self::TABLE_NAME . " u";
-    	$users = DbResource::getEntityManager()->createQuery($dql)->getResult();    
-    	$all_users_profiles = array();
+    	$users = DbResource::getEntityManager()->createQuery($dql)->getResult();        	
     
     	foreach ($users as $user) {
-    
-    		// all elements of array passed to Filter::XSSFilter for XSS sanitation, have a look into
-    		// application/core/Filter.php for more info on how to use. Removes (possibly bad) JavaScript etc from
-    		// the user's values
-    		array_walk_recursive($user, '\Application\Services\Login\Filter::XSSFilter');
-    
+      
     		$userid = $user->getUsername();
     		$all_users_profiles[$userid] = new \stdClass(); 
 //     		$all_users_profiles[$userid]->user_id = $userid;
@@ -120,11 +122,16 @@ class User {
     		$all_users_profiles[$userid]->user_deleted = $user->getDeleted();
     		$all_users_profiles[$userid]->user_avatar_link = self::getUserAvatarLink($user);
     		
-//     		if(isExternal){
-    			// TODO
-//     		}
-    	}
-    
+     		if(self::isExternalAccount($user)){
+    			// TODO: ... public profile for the Google or Facebook user
+     		}
+
+    		// all elements of array passed to Filter::XSSFilter for XSS sanitation, have a look into
+    		// Filter.php for more info on how to use. Removes (possibly bad) JavaScript etc from
+    		// the user's values
+    		array_walk_recursive($all_users_profiles, self::FILTER_CALLBACK_FUNC);
+			
+    	}    
     	return $all_users_profiles;
     }
     
@@ -134,25 +141,35 @@ class User {
      * @return mixed The selected user's profile
      */
     public static function getPublicProfileOfUser($user_name){
-    	$user = self::getByUsername($user_name);    
+		$user_profile = null;
+    	$user = self::getByUsername($user_name);    		
     	if ($user) {
-    		// TODO: attivare: $user_avatar_link = self::getUserAvatarLink($user);
+			$user_profile['user_id']		= $user->getEmail();
+    		$user_profile['user_name']		= $user->getUsername();			
+    		$user_profile['user_email'] 	= $user->getEmail();
+    		$user_profile['user_active'] 	= $user->getActive();
+    		$user_profile['user_deleted'] 	= $user->getDeleted();
+    		$user_profile['avatar_link'] 	= self::getUserAvatarLink($user);
 
+			if(self::isExternalAccount($user)){
+    			// TODO: ... public profile for the Google or Facebook user
+     		}			
+
+			// all elements of array passed to Filter::XSSFilter for XSS sanitation, have a look into
+			// Filter.php for more info on how to use. Removes (possibly bad) JavaScript etc from
+			// the user's values
+			array_walk_recursive($user_profile, self::FILTER_CALLBACK_FUNC);
+			
     	} else {
     		Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_USER_DOES_NOT_EXIST'));
     	}
     
-    	// all elements of array passed to Filter::XSSFilter for XSS sanitation, have a look into
-    	// application/core/Filter.php for more info on how to use. Removes (possibly bad) JavaScript etc from
-    	// the user's values
-    	array_walk_recursive($user, '\Application\Services\Login\Filter::XSSFilter');
-    
-    	return $user;
+    	return $user_profile;
     }
     
-    public static function getUserAvatarLink($user){
+    public static function getUserAvatarLink(Application\Models\User $user){
     	$user_avatar_link = null;
-    	if (Config::get('gravatar.enabled')) {
+    	if (self::config('gravatar.enabled')) {
     		$user_avatar_link = AvatarModel::getGravatarLinkByEmail($user->getEmail());
     	} else {
     		$user_avatar_link = AvatarModel::getPublicAvatarFilePathOfUser($user->getHasavatar(), $user->getUsername());
@@ -160,7 +177,13 @@ class User {
     	return $user_avatar_link;
     }
     
-    // TODO: get external icon
+	public static function save(Application\Models\Userexternal $user){
+		if ($user){
+			$em = DbResource::getEntityManager();
+			$em->persist($user);
+			$em->flush();
+		}
+	}
     
     /**
      * Checks if a username is already taken
@@ -311,10 +334,12 @@ class User {
     	return false;
     }
     
-    public static function isExternalAccount($user){
+    public static function isExternalAccount(Application\Models\User $user){
     	$b = false;
-	    $provider_type = $user->getProvidertype();
-	    $b = self::isExternalProvider($provider_type);
+		if($user){
+			$provider_type = $user->getProvidertype();
+			$b = self::isExternalProvider($provider_type);
+		}
 	    return $b;
 	}
 	
@@ -333,12 +358,30 @@ class User {
 		$b2 = false;
 	    if($provider_type){
 			$b1 = ExternalModel::rollbackRegistrationByEmail($provider_type);
-		}
-		
+		}		
 		$b2 = Registration::rollbackRegistrationByEmail($user_email);
-		
 		return $b1 && $b2;
 	}
 	
-    
+	public static function getCurrentLogged(){
+		$user = null;		
+		$username = Filter::html_entity_invert(Session::get(Session::SESSION_USER_NAME));		
+		if ($username !== null){
+			$user = self::getByUsername($username);
+		}		
+		return $user;
+	}
+	
+	public static function isApiKeyAvailable($api_key){
+		$b = false;
+		$sql = "SELECT u ";
+		$sql .= "FROM " . self::TABLE_NAME . " u ";
+		$sql .= "WHERE u.apikey = '$api_key'";		
+		$result = DbResource::getEntityManager()->createQuery($sql)->getOneOrNullResult();
+		if ($result === null){
+			$b = true;
+		}		
+		return $b;
+	}
+	
 }

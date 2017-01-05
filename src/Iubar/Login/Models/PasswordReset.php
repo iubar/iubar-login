@@ -4,19 +4,19 @@ namespace Iubar\Login\Models;
 
 use Iubar\Login\Core\DbResource;
 use Iubar\Login\Models\User as UserModel;
-use Iubar\Login\Services\Config;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Text;
 use Iubar\Login\Services\Encryption;
+use Iubar\Login\Core\EmailSender;
 use \ReCaptcha\ReCaptcha;
+use Iubar\Login\Models\AbstractLogin;
 
 /**
  * Class PasswordResetModel
  *
  * Handles all the stuff that is related to the password-reset process
  */
-class PasswordReset
-{
+class PasswordReset extends AbstractLogin {
 	/**
 	 * Perform the necessary actions to send a password reset mail
 	 *
@@ -25,18 +25,18 @@ class PasswordReset
 	 * @return bool success status
 	 */
 	public static function requestPasswordReset($user_name_or_email, $captcha){	
-		\Slim\Slim::getInstance()->log->debug("This is registrationInputValidation()");
-		$captcha_enabled = \Slim\Slim::getInstance()->config('captcha.enabled');
+		self::getLogger()->debug("This is registrationInputValidation()");
+		$captcha_enabled = self::config('captcha.enabled');
 		if($captcha_enabled){
 			// perform all necessary checks
-			$secret = \Slim\Slim::getInstance()->config('captcha.secret');
+			$secret = self::config('captcha.secret');
 			$recaptcha = new ReCaptcha($secret);
 			$resp = $recaptcha->verify($captcha, $_SERVER['REMOTE_ADDR']);
 			if ($resp->isSuccess()) {
-				\Slim\Slim::getInstance()->log->debug("captcha ok");
+				self::getLogger()->debug("captcha ok");
 			} else {
 				$errors = $resp->getErrorCodes();
-				\Slim\Slim::getInstance()->log->debug("wrong captcha", $errors);
+				self::getLogger()->debug("wrong captcha", $errors);
 				Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_CAPTCHA_WRONG'));
 				return false;
 			}
@@ -111,12 +111,10 @@ class PasswordReset
 	 */
 	public static function sendPasswordResetMail($user_name, $user_password_reset_hash, $user_email) {
 		// create email body
-		$app = \Slim\Slim::getInstance();
-		$url = $app->config('app.baseurl') . '/' . Config::get('email.pwdreset.url') . '/'  . urlencode($user_password_reset_hash) . "?user_name=" . urlencode(Encryption::encrypt($user_name));
-		$subject = Config::get('email.pwdreset.subject');
-		$body = Config::get('email.pwdreset.content') . ' <a href="'.$url.'">'.$url.'</a>';
-		// create instance of EmailSender class, try sending and check
-		$mail = new \Application\Core\EmailSender();
+		$url = self::config('app.baseurl') . '/' . self::config('email.pwdreset.url') . '/'  . urlencode($user_password_reset_hash) . "?user_name=" . urlencode(Encryption::encrypt($user_name));
+		$subject = self::config('email.pwdreset.subject');
+		$body = self::config('email.pwdreset.content') . ' <a href="'.$url.'">'.$url.'</a>';
+		$mail = new EmailSender();
 		$mail->setTo($user_email);
 		$mail->setSubject($subject);
 		$mail->setBodyHtml($body);
@@ -129,6 +127,7 @@ class PasswordReset
 		Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_PASSWORD_RESET_MAIL_SENDING_ERROR'));
 		return false;
 	}
+	
 	/**
 	 * Verifies the password reset request via the verification hash token (that's only valid for one hour)
 	 * @param string $user_name Username

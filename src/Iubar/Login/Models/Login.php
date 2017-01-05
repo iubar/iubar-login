@@ -4,15 +4,14 @@ namespace Iubar\Login\Models;
 
 use Iubar\Login\Core\DbResource;
 use Iubar\Login\Models\User as UserModel;
-use Iubar\Login\Services\Config;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Text;
 use Iubar\Login\Services\Encryption;
 use Iubar\Login\Services\Filter;
 use Iubar\Login\Models\Avatar as AvatarModel;
+use Iubar\Login\Models\AbstractLogin;
 
-class Login {
-
+class Login extends AbstractLogin {
 	
 	const COOKIE_REMEMBER_ME = 'remember_me';
 	
@@ -70,10 +69,7 @@ class Login {
 				self::setRememberMeInDatabaseAndCookie($user_name);
 			}
 		}
-		
-		// $ip = \Slim\Slim::getInstance()->request->getIp();
-		// Potrei salvare l'ip in un campo del db
-		
+				
 		// successfully logged in, so we write all necessary data into the session and set "user_logged_in" to true
 		self::setSuccessfulLoginIntoSession($user->getUsername(), $user->getEmail(), $user->getAccounttype(), $user->getProvidertype());
 	
@@ -123,7 +119,7 @@ class Login {
 			return false;
 		}
 		
-		\Slim\Slim::getInstance()->log->debug("validateAndGetUser: " . $user_name);
+		self::getLogger()->debug("validateAndGetUser: " . $user_name);
 		
 		// brute force attack mitigation: use session failed login count and last failed login for not found users.
 		// block login attempt if somebody has already failed 3 times and the last login attempt is less than 30sec ago
@@ -143,7 +139,7 @@ class Login {
 			Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_USERNAME_OR_PASSWORD_WRONG'));
 			return false;
 		}else{
-			\Slim\Slim::getInstance()->log->debug("User obj fetched");
+			self::getLogger()->debug("User obj fetched");
 		}
 	
 		// block login attempt if somebody has already failed 3 times and the last login attempt is less than 30sec ago
@@ -273,9 +269,11 @@ class Login {
 // 			Session::set(Session::FACEBOOK_PICTURE, null);								
 		}else if($user_provider==UserModel::PROVIDER_TYPE_GO){
 // 			Session::set(Session::GOOGLE_ID, null);
-// 			Session::set(Session::GOOGLE_BEARER_TOKEN, null);
+// 			Session::set(Session::GOOGLE_JWT_TOKEN, null);
 // 			Session::set(Session::GOOGLE_DISPLAY_NAME, null);			
 // 			Session::set(Session::GOOGLE_PICTURE, null);
+// 			Session::set(Session::GOOGLE_ACCESS_TOKEN, null);
+// 			Session::set(Session::GOOGLE_REFRESH_TOKEN, null);
 		}else{
 			self::deleteCookie($user_name); // solo per provider 'DEFAULT'			
 		}
@@ -309,9 +307,8 @@ class Login {
 	 * @param $user_account_type
 	 */
 	public static function setSuccessfulLoginIntoSession($user_name, $user_email, $user_account_type, $user_provider_type){
-		//  Session::init();
 
-		Session::regenerateId();
+		Session::regenerateId(); //  Update the current session id with a newly generated one
 				
 		Session::set(Session::SESSION_USER_NAME, $user_name);
 		Session::set(Session::SESSION_USER_EMAIL, $user_email);
@@ -331,10 +328,10 @@ class Login {
 		// set session cookie setting manually,
 		// Why? because you need to explicitly set session expiry, path, domain, secure, and HTTP.
 		// @see https://www.owasp.org/index.php/PHP_Security_Cheat_Sheet#Cookies
-		setcookie(session_name(), session_id(), time() + Config::get('session.runtime'), Config::get('cookie.path'),
-				Config::get('cookie.domain'), Config::get('cookie.secure'), Config::get('cookie.http'));
+		setcookie(session_name(), session_id(), time() + self::config('session.runtime'), self::config('cookie.path'),
+				self::config('cookie.domain'), self::config('cookie.secure'), self::config('cookie.http'));
 		
-		\Slim\Slim::getInstance()->log->debug("Session name: " . session_name() . " id: " . session_id());
+		self::getLogger()->debug("Session name: " . session_name() . " id: " . session_id());
 	}
 	
 	/**
@@ -377,7 +374,7 @@ class Login {
 
 		$user = UserModel::getByUsername($user_name);
 		$user->setLastlogin(new \DateTime());
-		 
+		$user->setLastIp(self::getRequestIp());		
 		$em = DbResource::getEntityManager();		 
 		$em->persist($user);
 		$em->flush();
@@ -412,8 +409,8 @@ class Login {
         // attacker could steal your remember-me cookie string and would login itself).
         // If you are using HTTPS, then you should set the "secure" flag (the second one from right) to true, too.
         // @see http://www.php.net/manual/en/function.setcookie.php
-        setcookie(self::COOKIE_REMEMBER_ME, $cookie_string, time() + Config::get('cookie.runtime'), Config::get('cookie.path'),
-            Config::get('cookie.domain'), Config::get('cookie.secure'), Config::get('cookie.http'));
+        setcookie(self::COOKIE_REMEMBER_ME, $cookie_string, time() + self::config('cookie.runtime'), self::config('cookie.path'),
+            self::config('cookie.domain'), self::config('cookie.secure'), self::config('cookie.http'));
 	}
 	
 	/**
@@ -434,8 +431,8 @@ class Login {
 	    }
 	    
         // delete remember_me cookie in browser
-        setcookie(self::COOKIE_REMEMBER_ME, false, time() - (3600 * 24 * 3650), Config::get('cookie.path'),
-            Config::get('cookie.domain'), Config::get('cookie.secure'), Config::get('cookie.http'));
+        setcookie(self::COOKIE_REMEMBER_ME, false, time() - (3600 * 24 * 3650), self::config('cookie.path'),
+            self::config('cookie.domain'), self::config('cookie.secure'), self::config('cookie.http'));
     }
 	
 	/**
@@ -444,7 +441,22 @@ class Login {
 	 * @return bool user's login status
 	 */
 	public static function isUserLoggedIn(){
-		return Session::userIsLoggedIn();
+		$b = Session::userIsLoggedIn();
+		if($b && utilizzo provider esterno){			
+		// L'autenticazione Panique è basta sulle Sessioni è quindi stateful mentre quella di google e Facebook è stateless.
+		// Per aumentare la sicurezza posso verificare se il token con cui è stato effettuato il login è scaduto		
+			if (token è scaduto){
+				$b = false;
+				rinnova
+				if(fallito){
+					logout
+				}else{
+					store
+					$b=true;
+				}
+			}
+		}
+		return $b;
 	}
 
 	

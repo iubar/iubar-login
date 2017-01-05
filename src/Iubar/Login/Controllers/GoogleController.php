@@ -1,14 +1,11 @@
 <?php
 
-namespace Application\Controllers\Login;
+namespace Iubar\Login\Controllers;
 
-use Application\Core\LoginAbstractController;
-use Application\Models\Login\GoModel;
-use Application\Models\Login\UserModel;
-use Application\Models\Login\LoginModel;
-use Application\Services\Session;
-use Application\Services\Login\Csrf;
-
+use Iubar\Login\Core\LoginAbstractController;
+use Iubar\Login\Models\GoModel;
+use Iubar\Login\Models\Login as LoginModel;
+use Iubar\Login\Services\Session;
 
 class GoogleController extends LoginAbstractController {
 	
@@ -23,21 +20,21 @@ class GoogleController extends LoginAbstractController {
 	* Index, default action (shows the login form), when you do login/index
 	*/
 	public function getLogin(){
-		$this->app->log->debug(get_class($this) . '->getLogin()');
+		$this->logger->debug(get_class($this) . '->getLogin()');
 		$logged_in = LoginModel::isUserLoggedIn();
 		// Auto login
 		if (!$logged_in) {
-			if (Session::getDecoded(Session::GOOGLE_BEARER_TOKEN)) {
+			if (Session::getDecoded(Session::GOOGLE_JWT_TOKEN)) {
 				// In questo caso posso evitare di visualizzare la form di login "server-side"
 				// e provare a loggare direttamente l'utente
 				// TODO: valutare i vantaggi di tale soluzione (rispetto al blocco "else" seguente)
 				// prchè non sono stati verificati
-				$this->app->log->debug("Bearer token is in session, go directly to the callback route");
-				$this->app->redirect($this->app->config('app.baseurl') .'/login/google/callback'); // TODO: it's hard-coded
+				$this->logger->debug("Bearer token is in session, go directly to the callback route");
+				$this->redirect($this->config('app.baseurl') .'/login/google/callback');
 			}else{
 				$redirect = $this->getRedirectUrl();
 				$loginUrl = GoModel::getLoginUrl();
-				$this->app->render($this->app->config('app.templates.path') . '/login/external/go_login_server_side.twig', array(
+				$this->render($this->config('app.templates.path') . '/login/external/go_login_server_side.twig', array(
 						'redirect' => urlencode($redirect),
 						'login_url' => $loginUrl,
 						'feedback_positive' => $this->getFeedbackPositiveMessages(),
@@ -45,37 +42,41 @@ class GoogleController extends LoginAbstractController {
 				));
 			}
 		}else{
-		    $redirect_url = $this->app->config('auth.route.afterlogin');
+		    $redirect_url = $this->config('auth.route.afterlogin');
 		    if ($redirect){
 		        $redirect_url .= '?redirect=' . urlencode($redirect);
 		    }
-		    $this->app->redirect($redirect_url);
+		    $this->redirect($redirect_url);
 		}
 		
 	}
 	
 	public function getLoginCustomButton(){
-		$this->app->log->debug(get_class($this) . '->getLoginCustomButton()');
-		$this->app->render($this->app->config('app.templates.path') . '/login/external/go_custom_button.twig', array());
+		$this->logger->debug(get_class($this) . '->getLoginCustomButton()');
+		$this->render($this->config('app.templates.path') . '/login/external/go_custom_button.twig', array());
 	}
 	public function getLoginButton(){
-		$this->app->log->debug(get_class($this) . '->getLoginButton()');
-		$this->app->render($this->app->config('app.templates.path') . '/login/external/go_button.twig', array());
+		$this->logger->debug(get_class($this) . '->getLoginButton()');
+		$this->render($this->config('app.templates.path') . '/login/external/go_button.twig', array());
 	}
 	public function getLogout(){
-		$this->app->log->debug(get_class($this) . '->getLogout()');
-		$this->app->render($this->app->config('app.templates.path') . '/login/external/go_logout.twig', array());
+		$this->logger->debug(get_class($this) . '->getLogout()');
+		$this->render($this->config('app.templates.path') . '/login/external/go_logout.twig', array());
 	}
 
 	public function getLoginCallback(){
-		$this->app->log->debug(get_class($this) . '->getLoginCallback()');
+		$this->logger->debug(get_class($this) . '->getLoginCallback()');
 		$login_successful = false;
 		if(isset($_REQUEST['code'])){
 			$login_successful = GoModel::loginServerSide();
+		} else if (isset($_SESSION[Session::GOOGLE_ACCESS_TOKEN])) {
+			$login_successful = GoModel::loginServerSide();	
 		}else if (isset($_REQUEST['bearer_token'])){
 			$login_successful = GoModel::loginFromJs();
-		}else if (Session::getDecoded(Session::GOOGLE_BEARER_TOKEN)){
+		}else if (isset($_SESSION[Session::GOOGLE_JWT_TOKEN])){
 			$login_successful = GoModel::loginFromJs();
+		}else{
+			$this->logger->debug(get_class($this) . '->getLoginCallback(): situazione imprevista');
 		}
 		$this->redirectAfterLogin($login_successful);
 	}

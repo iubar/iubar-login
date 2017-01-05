@@ -12,9 +12,9 @@
 		}
 	],
     "require": {
-		"google/apiclient" : "*",
+		"google/apiclient" : "2.1.0",
 		"google/recaptcha": "~1.1",
-		"facebook/php-sdk-v4" : "^5.0",
+		"facebook/php-sdk-v4" : "^5.4",
 		"swiftmailer/swiftmailer" : "*",
 		"robloach/component-installer": "*",
 		"iubar/iubar-slim-core": "dev-master@dev",

@@ -7,7 +7,7 @@
 							// To receive the response of this call, you must subscribe to the auth.statusChange event.
 							// FB.Event.subscribe('auth.statusChange', auth_status_change_callback);
 	    
-	    version    : 'v2.4'
+	    version    : 'v2.8' // use graph api version 2.8
 	  });
 	
 	  // Now that we've initialized the JavaScript SDK, we call 
@@ -198,10 +198,7 @@ function fbLogout() {
 // 		    }
 // 		}
 			  
-    console.log('statusChangeCallback: ' + angular.toJson(response));
-
-    var status = response['status']; // oppure  "response.status";
-    console.log('fb status: ' + status);    
+    console.log('statusChangeCallback: ' + angular.toJson(response)); 
     var authResponse = response['authResponse'];
     if(authResponse){
 	    var accessToken = authResponse['accessToken'];

@@ -8,19 +8,15 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
 -- -----------------------------------------------------
--- Schema presenze
+-- Schema login
 -- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `login` DEFAULT CHARACTER SET utf8 ;
+USE `login` ;
 
 -- -----------------------------------------------------
--- Schema presenze
+-- Table `User`
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `presenze` DEFAULT CHARACTER SET utf8 ;
-USE `presenze` ;
-
--- -----------------------------------------------------
--- Table `presenze`.`User`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `presenze`.`User` (
+CREATE TABLE IF NOT EXISTS `User` (
   `Username` VARCHAR(255) NOT NULL,
   `Email` VARCHAR(64) NULL,
   `LastLogin` DATETIME NULL,
@@ -34,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `presenze`.`User` (
   `LastFailedLogin` DATETIME NULL,
   `CreationTime` DATETIME NULL,
   `CreationIp` VARCHAR(39) NULL,
+  `LastIp` VARCHAR(39) NULL,  
   `SessionId` VARCHAR(48) NULL,
   `Deleted` TINYINT(1) NULL,
   `AccountType` TINYINT(1) NULL,
@@ -47,9 +44,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `presenze`.`UserExternal`
+-- Table `UserExternal`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `presenze`.`UserExternal` (
+CREATE TABLE IF NOT EXISTS `UserExternal` (
   `Id` VARCHAR(255) NOT NULL,
   `Display` VARCHAR(255) NULL,
   `FirstName` VARCHAR(64) NULL,
@@ -62,15 +59,17 @@ CREATE TABLE IF NOT EXISTS `presenze`.`UserExternal` (
   `AccessToken` VARCHAR(255) NULL,
   `AccessTokenScope` VARCHAR(255) NULL,
   `AccessTokenExpireAt` DATETIME NULL,
+  `RefreshToken` VARCHAR(255) NULL,
+  `ClientId` VARCHAR(255) NULL, 
   `ProviderType` VARCHAR(10) NULL,
   PRIMARY KEY (`Id`))
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `presenze`.`ContrattoDettaglio`
+-- Table `ContrattoDettaglio`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `presenze`.`ContrattoDettaglio` (
+CREATE TABLE IF NOT EXISTS `ContrattoDettaglio` (
   `IdContrattoDettaglio` INT NOT NULL,
   `Descrizione` VARCHAR(200) NULL,
   `Edr` DECIMAL(15,6) NULL,
@@ -98,9 +97,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `presenze`.`ContrattoMaggiorazione`
+-- Table `ContrattoMaggiorazione`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `presenze`.`ContrattoMaggiorazione` (
+CREATE TABLE IF NOT EXISTS `ContrattoMaggiorazione` (
   `IdContrattoMaggiorazione` INT NOT NULL,
   `IdContrattoDettaglio` INT NOT NULL,
   `LimiteOreAnno` DECIMAL(6,2) NULL,
@@ -118,7 +117,7 @@ CREATE TABLE IF NOT EXISTS `presenze`.`ContrattoMaggiorazione` (
   INDEX `fk_ContrattoMaggiorazione_ContrattoDettaglio1_idx` (`IdContrattoDettaglio` ASC),
   CONSTRAINT `fk_ContrattoMaggiorazione_ContrattoDettaglio1`
     FOREIGN KEY (`IdContrattoDettaglio`)
-    REFERENCES `presenze`.`ContrattoDettaglio` (`IdContrattoDettaglio`)
+    REFERENCES `ContrattoDettaglio` (`IdContrattoDettaglio`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

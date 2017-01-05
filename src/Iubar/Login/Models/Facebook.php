@@ -2,12 +2,17 @@
 
 namespace Iubar\Login\Models;
 
+use Application\Models\Userexternal;
+use Application\Models\User;
+
 use Iubar\Login\Core\DbResource;
-use Iubar\Login\Models\User as UserModel;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Text;
-use Application\Models\User;
-use Application\Models\Userexternal;
+use Iubar\Login\Models\External;
+use Iubar\Login\Models\User as UserModel;
+use Iubar\Login\Models\Login;
+use Iubar\Login\Models\AbstractLogin;
+use Iubar\Login\Models\IExternalModel;
 
 use Facebook\Facebook;
 use Facebook\FacebookResponse;
@@ -15,7 +20,7 @@ use Facebook\Exceptions\FacebookResponseException;
 use Facebook\Exceptions\FacebookSDKException;
 use Facebook\Authentication\AccessToken;
 
-class Facebook {
+class Facebook extends AbstractLogin implements IExternalModel {
 	
 	// https://developers.facebook.com/docs/graph-api/reference/v2.5/user
 	// https://developers.facebook.com/docs/php/api/5.0.0
@@ -23,9 +28,9 @@ class Facebook {
 	// https://www.facebook.com/settings?tab=applications
 	
 	const FORCE_TOKEN_REFRESH_AFTER_LOGIN = false;
-	private static $apiVer = "v2.4";
-	private static $appId = "711000465694649"; // Fatturatutto
-	private static $appSecret = "d1d8783a2fc0053f7618fa2a59de8d99"; // Fatturatutto
+	private static $apiVer = "v2.8";
+	private static $appId = "711000465694649"; // FIXME: hard-coded value
+	private static $appSecret = "d1d8783a2fc0053f7618fa2a59de8d99"; // FIXME: security flaw in
 	
 	private static $fb = null;
 	
@@ -106,7 +111,7 @@ class Facebook {
 // 				3) Logged into Facebook and have authorized your app			
 			
 
-			IubarFattureApp::getInstance()->log->debug('access token string: ' . $accessToken->getValue());
+			self::getLogger()->debug('access token string: ' . $accessToken->getValue());
 			
 			if(!$accessToken->isLongLived()){
 				$accessToken = self::getExtendAccessToken($accessToken); // returns a Long Lived Access Token
@@ -156,7 +161,7 @@ class Facebook {
 		$signedRequest = $helper->getSignedRequest();		
 		if ($signedRequest) {
 			$payload = $signedRequest->getPayload();
-			IubarFattureApp::getInstance()->log->debug('Payload: ' . @r($payload));
+			self::getLogger()->debug('Payload: ' . @rt($payload));
 		}
 
 		try {				
@@ -169,11 +174,7 @@ class Facebook {
 		} catch(FacebookSDKException $e) {
 		  // When validation fails or other local issues
 		  $msg = 'Facebook SDK returned an error: ' . $e->getMessage();
-		 // echo $msg;
-		  //exit;
-		  //throw new \Slim\Exception\Stop();
-			throw new \RuntimeException($msg);
-		  
+			throw new \RuntimeException($msg);		  
 		}
 
 		if (! isset($accessToken)) {
@@ -188,7 +189,7 @@ class Facebook {
 			
 			
     		// You can also set the user as "logged in" at this point
-			IubarFattureApp::getInstance()->log->debug('access token string: ' . $accessToken->getValue());
+			self::getLogger()->debug('access token string: ' . $accessToken->getValue());
 				
 			if($extend_lifetime){
 				if(!$accessToken->isLongLived()){
@@ -200,8 +201,6 @@ class Facebook {
 			Session::set(Session::FACEBOOK_ACCESS_TOKEN, (string) $accessToken);
 			
 		}
-
-		
 		return $accessToken;
 	}
 	
@@ -236,7 +235,7 @@ class Facebook {
 			exit;
 		}
 		
-		IubarFattureApp::getInstance()->log->debug('Raw response: ' . @r($response));
+		self::getLogger()->debug('Raw response: ' . @rt($response));
 		$fb_graph_user = $response->getGraphUser();
 		// per comodità potrei anche usare $plainOldArray = $response->getDecodedBody();
 		return $fb_graph_user;
@@ -244,7 +243,7 @@ class Facebook {
 	
 // Example	
 // 	public static function getPostContent($access_token){	
-// 		$fb = FbModel::getFb();
+// 		$fb = Facebook::getFb();
 // 		// https://developers.facebook.com/docs/graph-api/reference/v2.5/
 // 		$linkData = [
 // 				'link' => 'http://www.example.com',
@@ -287,9 +286,9 @@ class Facebook {
 				exit;
 			}
 
-			IubarFattureApp::getInstance()->log->debug('\$longLivedAccessToken: ' . $longLivedAccessToken->getValue());
+			self::getLogger()->debug('\$longLivedAccessToken: ' . $longLivedAccessToken->getValue());
 		}else{
-			IubarFattureApp::getInstance()->log->debug('No need to request new token. The actual token will expire at: ' . self::getExpireDateAsString($accessToken) . '');
+			self::getLogger()->debug('No need to request new token. The actual token will expire at: ' . self::getExpireDateAsString($accessToken) . '');
 			$longLivedAccessToken = $accessToken;
 		}
 		return $longLivedAccessToken;
@@ -299,74 +298,74 @@ class Facebook {
 
 			$fb_id = $fb_graph_user->getId();
 			
-			if(ExternalModel::getUserById($fb_id) !== null) {
-				IubarFattureApp::getInstance()->log->debug('Fb user\'s id aleady in use');
+			if(External::getUserById($fb_id) !== null) {
+				self::getLogger()->debug('Fb user\'s id aleady in use');
 				Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_FB_ID_ALREADY_TAKEN'));
 				return false;
 			}
 					
-			if(ExternalModel::getUserByEmail($fb_id, UserModel::PROVIDER_TYPE_FB) !== null) {
-				IubarFattureApp::getInstance()->log->debug('Fb user\'s id aleady in use');
+			if(External::getUserByEmail($fb_id, UserModel::PROVIDER_TYPE_FB) !== null) {
+				self::getLogger()->debug('Fb user\'s id aleady in use');
 				Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_FB_EMAIL_ALREADY_TAKEN'));
 				return false;
 			}
 			
 			// write user data to database
 			if (!self::writeNewFbUserToDatabase($fb_graph_user, $accessToken)) {
-				IubarFattureApp::getInstance()->log->debug('Registrazione fallita');
+				self::getLogger()->debug('Registrazione fallita');
 				Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_ACCOUNT_CREATION_FAILED'));
 				return false;
 			}									
 			return true;				
 	}
 	
-private static function registerOrMergeNewUserDefault($fb_graph_user){
-	$user = null;
-	if($fb_graph_user){
-		$fb_email = $fb_graph_user->getEmail();
-		$user = UserModel::getByEmail($fb_email);
-		if($user){ // Allora esiste già un utente con la stessa email
-			// Merge dell'account esistente con i dati FB
-			//
-			// Nota che le situazioni critiche sono due
-			// 1) L'utente esiste già nella tabella User ma non in quella UserExternal
-			// 2) L'utente esiste già in entrambe le tabelle ma con 'provider' differente
-			IubarFattureApp::getInstance()->log->debug("registerOrMergeNewUserDefault(): calling self::mergeAccount()");
-			$b = self::mergeAccount($user, $fb_graph_user);
-						
+	private static function registerOrMergeNewUserDefault($fb_graph_user){
+		$user = null;
+		if($fb_graph_user){
+			$fb_email = $fb_graph_user->getEmail();
+			$user = UserModel::getByEmail($fb_email);
+			if($user){ // Allora esiste già un utente con la stessa email
+				// Merge dell'account esistente con i dati FB
+				//
+				// Nota che le situazioni critiche sono due
+				// 1) L'utente esiste già nella tabella User ma non in quella UserExternal
+				// 2) L'utente esiste già in entrambe le tabelle ma con 'provider' differente
+				self::getLogger()->debug("registerOrMergeNewUserDefault(): calling self::mergeAccount()");
+				$b = self::mergeAccount($user, $fb_graph_user);
+							
+			}else{
+				// Creo l'utente standard...;
+				$fb_id = $fb_graph_user->getId();
+				self::getLogger()->debug("registerOrMergeNewUserDefault(): calling External::registerNewUserDefault()");
+				$b = External::registerNewUserDefault($fb_id, $fb_email, UserModel::PROVIDER_TYPE_FB);
+			}
 		}else{
-			// Creo l'utente standard...;
-			$fb_id = $fb_graph_user->getId();
-			IubarFattureApp::getInstance()->log->debug("registerOrMergeNewUserDefault(): calling ExternalModel::registerNewUserDefault()");
-			$b = ExternalModel::registerNewUserDefault($fb_id, $fb_email, UserModel::PROVIDER_TYPE_FB);
+			// error
 		}
-	}else{
-		// error
+		return $b;
 	}
-	return $b;
-}
 
 	private static function loginFromJs2($fb_graph_user, $accessToken){
 		$fb_email = $fb_graph_user->getEmail();
-		IubarFattureApp::getInstance()->log->debug("Calling LoginModel::loginExternal()");
-		$login_successful = LoginModel::loginExternal($fb_email, UserModel::PROVIDER_TYPE_FB);
+		self::getLogger()->debug("Calling Login::loginExternal()");
+		$login_successful = Login::loginExternal($fb_email, UserModel::PROVIDER_TYPE_FB);
 		// check login status: if true, then redirect user to user/index, if false, then to login form again
 		if ($login_successful) {
 		
-			IubarFattureApp::getInstance()->log->debug("Login successfully");
+			self::getLogger()->debug("Login successfully");
 		
 			if(self::FORCE_TOKEN_REFRESH_AFTER_LOGIN){
 				// Scambio l'access token con uno a lunga durata, lo salvo nel db e aggiorno l'oggeto Facebook.
-				IubarFattureApp::getInstance()->log->debug("Exchange access short live token '" . $accessToken . "' for a long live one");
+				self::getLogger()->debug("Exchange access short live token '" . $accessToken . "' for a long live one");
 				$accessToken = self::getExtendAccessToken($accessToken); // ask FB for a long-lived token
-				IubarFattureApp::getInstance()->log->debug("New log live token: '" . $accessToken . "'");
+				self::getLogger()->debug("New log live token: '" . $accessToken . "'");
 				Session::set(Session::FACEBOOK_ACCESS_TOKEN, (string) $accessToken); // qui il cast è obbligatorio perchè $accessToken è un oggetto
 			}
 		
-			$scope = null; // TODO:
-			$expire_date = null; // TODO:
+			$scope = null; 			// TODO:
+			$expire_date = null; 	// TODO:
 			
-			ExternalModel::writeAccessTokenToDb($fb_email, $accessToken, $scope, $expire_date, UserModel::PROVIDER_TYPE_FB);
+			External::writeAccessTokenToDb($fb_email, $accessToken, $scope, $expire_date, UserModel::PROVIDER_TYPE_FB);
 			self::getFb()->setDefaultAccessToken($accessToken);
 		
 			$fb_id =  $fb_graph_user->getId();
@@ -383,19 +382,19 @@ private static function registerOrMergeNewUserDefault($fb_graph_user){
 
 	private static function getFbUserOrRegister($fb_graph_user, $accessToken){
 		$fb_id = $fb_graph_user->getId();
-		$fb_user = ExternalModel::getUserById($fb_id);
+		$fb_user = External::getUserById($fb_id);
 		if(!$fb_user){
-			IubarFattureApp::getInstance()->log->debug("Calling self::registerNewUserExternal()");
+			self::getLogger()->debug("Calling self::registerNewUserExternal()");
 			$b2 = self::registerNewUserExternal($fb_graph_user, $accessToken);
 			if(!$b2){
-				ExternalModel::rollbackRegistrationById($fb_id); 
+				External::rollbackRegistrationById($fb_id); 
 				throw new \RuntimeException("Can't register the Fb user");
 			}
-			$fb_user = ExternalModel::getUserById($fb_id);
+			$fb_user = External::getUserById($fb_id);
 		}else{
 			// questa è una situazione che si verifica solo se, in precedenza,
 			// la procedura di creazione utente non è andata a buon fine
-			IubarFattureApp::getInstance()->log->debug("Fb user already exists");
+			self::getLogger()->debug("Fb user already exists");
 		}
 		return $fb_user;
 	}
@@ -429,8 +428,8 @@ private static function registerOrMergeNewUserDefault($fb_graph_user){
 		if(Session::getDecoded(Session::FACEBOOK_ACCESS_TOKEN)){
 			$msg = "Access token in session: " . Session::getDecoded(Session::FACEBOOK_ACCESS_TOKEN);
 			$msg2 = "Access token from request: " . $accessToken;
-			IubarFattureApp::getInstance()->log->debug($msg);
-			IubarFattureApp::getInstance()->log->debug($msg2);
+			self::getLogger()->debug($msg);
+			self::getLogger()->debug($msg2);
 		}
 		
 		$login_successful = self::loginWithAccessToken2($accessToken);
@@ -458,22 +457,22 @@ private static function registerOrMergeNewUserDefault($fb_graph_user){
 					if($fb_user){
 						$user = self::getUserOrRegister($fb_graph_user);
 						if(!$user){
-							IubarFattureApp::getInstance()->log->debug("\$user is null");
+							self::getLogger()->debug("\$user is null");
 							throw new \RuntimeException("\$user is null");
 						}
 					}else{
-						IubarFattureApp::getInstance()->log->debug("\$fb_user is null");
+						self::getLogger()->debug("\$fb_user is null");
 						throw new \RuntimeException("\$fb_user is null");
 						// Nota: a volte getFbUserOrRegister() potrebbe ritornare null ma il record dell'utente nella tabella UserExternal è stato comunque inserito
 						// Occorre quindi verificare il contenuto della tabella
 					}
 				}else{
-					IubarFattureApp::getInstance()->log->debug("token non valido per utente " . $fb_id);
+					self::getLogger()->debug("token non valido per utente " . $fb_id);
 					throw new \RuntimeException("token non valido per utente " . $fb_id);
 				}
 		
 			}else{
-				IubarFattureApp::getInstance()->log->debug("Access token scaduto");
+				self::getLogger()->debug("Access token scaduto");
 			}
 		
 			if($user && $fb_user){
@@ -501,7 +500,7 @@ private static function registerOrMergeNewUserDefault($fb_graph_user){
 			$pic_url = $fb_graph_user->getPicture()->getUrl();
 			$now = new \DateTime();
 			$now->setTimestamp(time());				
-			$ip = IubarFattureApp::getInstance()->request->getIp();
+			$ip = self::getRequestIp();
 			 			
 			$fbUser = new Userexternal();
 			$fbUser->setId($fb_id);
@@ -513,29 +512,21 @@ private static function registerOrMergeNewUserDefault($fb_graph_user){
 			$fbUser->setPictureUrl($pic_url);
 			$fbUser->setCreationtime($now);
 			$fbUser->setCreationip($ip);
-			$fbUser->setAccesstoken($accessToken);
-			// TODO: insieme ad accessToken devo 
-			// $fbUser->setAccesstokenexpireat()
-			// $fbUser->setAccesstokenscope()
+			$fbUser->setAccesstoken($accessToken); 	// TODO: la scrittura va ripetuta ogni volta che effettuo il refresh del token
+													// TODO: insieme ad accessToken devo scrivere 
+													// $fbUser->setAccesstokenexpireat()
+													// $fbUser->setAccesstokenscope()
 			$fbUser->setProvidertype(UserModel::PROVIDER_TYPE_FB);
 			try {
 				$em = DbResource::getEntityManager();			
 				$em->persist($fbUser);
 				$em->flush();
 				return true;
-			} catch (Exception $e) {
+			} catch (\Exception $e) {
 				return false;
 			}
 		}
 	}
-
-
-
-// Esempio:	
-// 	public static function factoryAccessToken($accessTokenString){
-// 		$accessToken = new AccessToken($accessTokenString);
-// 		return $acces_token;
-// 	}
 	
 	private static function validateToken($accessToken, $userId=null){
 		$fb = Facebook::getFb();
@@ -544,7 +535,7 @@ private static function registerOrMergeNewUserDefault($fb_graph_user){
 		// Get the access token metadata
 		$tokenMetadata = $oAuth2Client->debugToken($accessToken); // Get the metadata associated with the access token.
 		// echo '<h3>Metadata</h3>';
-		IubarFattureApp::getInstance()->log->debug('\$tokenMetadata: ' . @r($tokenMetadata));
+		self::getLogger()->debug('\$tokenMetadata: ' . @rt($tokenMetadata));
 		try{
 			$tokenMetadata->validateAppId(Facebook::$appId);  // Nota: il metodo non ritorna nulla, solo un'eccezione se la validazione fallisce
 			if($userId){
@@ -579,7 +570,7 @@ private static function registerOrMergeNewUserDefault($fb_graph_user){
 		return $timeString; 
 	}
 	
-	private static function mergeAccount($user, $fb_graph_user){
+	private static function mergeAccount(User $user, $fb_graph_user){
 		$b = false;
 		if(!$user || !$fb_graph_user){
 			throw new \InvalidArgumentException("mergeAccount(): invalid arguments");
@@ -588,7 +579,7 @@ private static function registerOrMergeNewUserDefault($fb_graph_user){
 		$fbEmail = $fb_graph_user->getEmail();
 		if($email == $fbEmail){
 			$fbId = $fb_graph_user->getId();
-			$b = ExternalModel::mergeAccount($fbId, $fbEmail, UserModel::PROVIDER_TYPE_FB);
+			$b = External::mergeAccount($fbId, $fbEmail, UserModel::PROVIDER_TYPE_FB);
 		}
 		return $b;
 	}
@@ -599,11 +590,15 @@ private static function registerOrMergeNewUserDefault($fb_graph_user){
 		return self::loginWithAccessToken2($accessToken);		
 	}
 	
-	public static function stringToDateTime($str_timestamp){
+	public static function dateTimeFromTimestamp($unix_timestamp){
 		$date = null;
 		$date = new \DateTime();
-		$date->setTimestamp($str_timestamp);
+		$date->setTimestamp($unix_timestamp);
 		return $date;
 	}
 	
+	public static function stringToDateTime($string, $format='Y-m-d H:i:s'){
+		$date = \DateTime::createFromFormat($format, $string);
+		return $date;
+	}
 }
