@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `User` (
   `LastFailedLogin` DATETIME NULL,
   `CreationTime` DATETIME NULL,
   `CreationIp` VARCHAR(39) NULL,
+  `LastIp` VARCHAR(39) NULL,  
   `SessionId` VARCHAR(48) NULL,
   `Deleted` TINYINT(1) NULL,
   `AccountType` TINYINT(1) NULL,
@@ -58,11 +59,9 @@ CREATE TABLE IF NOT EXISTS `UserExternal` (
   `AccessToken` VARCHAR(255) NULL,
   `AccessTokenScope` VARCHAR(255) NULL,
   `AccessTokenExpireAt` DATETIME NULL,
+  `RefreshToken` VARCHAR(255) NULL,
+  `ClientId` VARCHAR(255) NULL, 
   `ProviderType` VARCHAR(10) NULL,
   PRIMARY KEY (`Id`))
 ENGINE = InnoDB;
 
-
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

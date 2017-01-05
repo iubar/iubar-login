@@ -2,13 +2,15 @@
 
 namespace Iubar\Login\Services;
 
+use Iubar\Login\Services\User;
+
 class ApiKey {
 	
 	private static function generate(){
 		$api_key = null;
 		$random = null;
 		if (!function_exists('openssl_cipher_iv_length') || !function_exists('openssl_random_pseudo_bytes') || !function_exists('openssl_encrypt')) {
-			throw new Exception("Encryption function don't exists");
+			throw new \Exception("Encryption function don't exists");
 		} else {
 			$random = openssl_random_pseudo_bytes(32);
 			$api_key = sha1($random); // SHA1 produces a 40 character string
@@ -25,10 +27,9 @@ class ApiKey {
 	
 	public static function create(){
 		$api_key = self::generate();
-		if (!\Iubar\Login\Services\User::isApiKeyAvailable($api_key)){
+		if (!User::isApiKeyAvailable($api_key)){
 			$api_key = self::generate();
-		}
-		
+		}	
 		return $api_key;
 	}
 	

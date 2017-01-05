@@ -3,10 +3,9 @@
 namespace Iubar\Login\Controllers;
 
 use Iubar\Login\Core\LoginAbstractController;
-use Iubar\Login\Models\FacebookController as FacebookModel;
+use Iubar\Login\Models\Facebook as FacebookModel;
 use Iubar\Login\Models\Login as LoginModel;
 use Iubar\Login\Services\Session;
-
 
 class FacebookController extends LoginAbstractController {
 	
@@ -21,7 +20,7 @@ class FacebookController extends LoginAbstractController {
 	* Index, default action (shows the login form), when you do login/index
 	*/
 	public function getLogin(){
-		$this->app->log->debug(get_class($this) . '->getLogin()');	
+		$this->logger->debug(get_class($this) . '->getLogin()');	
 		$logged_in = LoginModel::isUserLoggedIn();
 		$redirect = $this->getRedirectUrl();
 		// Auto login
@@ -29,11 +28,11 @@ class FacebookController extends LoginAbstractController {
 			if (Session::getDecoded(Session::FB_ACCESS_TOKEN)) {
 				// In questo caso posso evitare di visualizzare la form di login "server-side"
 				// e provare a loggare direttamente l'utente
-				$this->app->log->debug("Access token is in session, go directly to the callback route");
-				$this->app->redirect($this->app->config('app.baseurl') .'/login/fb/callback' . '?redirect=' . urlencode($redirect));
+				$this->logger->debug("Access token is in session, go directly to the callback route");
+				$this->redirect($this->config('app.baseurl') .'/login/fb/callback' . '?redirect=' . urlencode($redirect));
 			}else{
 				$loginUrl = FacebookModel::getLoginUrl();
-				$this->app->render($this->app->config('app.templates.path') . '/login/external/fb_login_server_side.twig', array(
+				$this->render($this->config('app.templates.path') . '/login/external/fb_login_server_side.twig', array(
 						'redirect' => urlencode($redirect),
 						'login_url' => $loginUrl,
 						'feedback_positive' => $this->getFeedbackPositiveMessages(),
@@ -41,16 +40,16 @@ class FacebookController extends LoginAbstractController {
 				));
 			}
 		}else{
-		    $redirect_url = $this->app->config('auth.route.afterlogin');
+		    $redirect_url = $this->config('auth.route.afterlogin');
 		    if ($redirect){
 		        $redirect_url .= '?redirect=' . urlencode($redirect);
 		    }
-		    $this->app->redirect($redirect_url);
+		    $this->redirect($redirect_url);
 		}
 	}
 	
 	public static function getLoginCallback(){
-		$this->app->log->debug(get_class($this) . '->getLoginCallback()');
+		$this->logger->debug(get_class($this) . '->getLoginCallback()');
 		$accessToken = Session::getDecoded(Session::FB_ACCESS_TOKEN);
 		if(!$accessToken){
 			$accessToken = FacebookModel::getAccessTokenAfterLogin();
@@ -69,13 +68,13 @@ class FacebookController extends LoginAbstractController {
 				echo "<img src='" . $fbUser->getPicture()->getUrl() . "' />";
 			}else{
 				$fb_graph_user = FacebookModel::getUserFromGraphApi($accessToken);
-				echo @r($fb_graph_user);
+				echo @r($fb_graph_user); // html out format
 			}
 		}
 	}
 	
 	public function getLoginCallbackFromJs(){
-		$this->app->log->debug(get_class($this) . '->getLoginCallbackFromJs()');
+		$this->logger->debug(get_class($this) . '->getLoginCallbackFromJs()');
 		$login_successful = false;
 		if(Session::getDecoded(Session::FACEBOOK_ACCESS_TOKEN)){
 			$login_successful = FacebookModel::loginWithAccesstoken();
@@ -86,12 +85,12 @@ class FacebookController extends LoginAbstractController {
 	}
 	
 	public function getLoginButton(){
-		$this->app->log->debug(get_class($this) . '->getLoginButton()');
-		$this->app->render($this->app->config('app.templates.path') . '/login/external/fb_button.twig', array());
+		$this->logger->debug(get_class($this) . '->getLoginButton()');
+		$this->render($this->config('app.templates.path') . '/login/external/fb_button.twig', array());
 	}
 	public function getLogout(){
-		$this->app->log->debug(get_class($this) . '->getLogout()');
-		$this->app->render($this->app->config('app.templates.path') . '/login/external/fb_logout.twig', array());
+		$this->logger->debug(get_class($this) . '->getLogout()');
+		$this->render($this->config('app.templates.path') . '/login/external/fb_logout.twig', array());
 	}
 
 }

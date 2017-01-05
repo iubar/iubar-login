@@ -4,7 +4,7 @@ namespace Iubar\Login\Services;
 
 class Text {
 	
-	private static $texts;
+	private static $texts = null;
 	
 	// Esempio: se la stringa nel file eng.php è:
 	// "FEEDBACK_USER_EMAIL_ALREADY_TAKEN" => "Sorry, the email $user_email is already in use." 
@@ -26,8 +26,12 @@ class Text {
 				
 		// load config file (this is only done once per application lifecycle)
 		if (!self::$texts) {
-			self::$texts = require(__DIR__ . '/translations/it.php');			
-			// php\php_iubar_fatture\www\php\Application\Services\Login\
+			$file = __DIR__ . '/translations/it.php';
+			if(!is_readable($file)){
+				self::$texts = require($file);						
+			}else{						
+				throw new \RuntimeException('Can not load the translation file: ' . $file);		 
+			}
 		}
 		// check if array key exists
 		if (!array_key_exists($key, self::$texts)) {

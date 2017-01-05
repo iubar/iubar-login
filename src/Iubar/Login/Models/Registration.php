@@ -2,12 +2,16 @@
 
 namespace Iubar\Login\Models;
 
+use Iubar\Login\Models\User;
 use Iubar\Login\Core\DbResource;
-use Iubar\Login\Services\Config;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Text;
 use Iubar\Login\Services\Mail;
 use Iubar\Login\Services\Encryption;
+use Iubar\Login\Core\EmailSender;
+use Iubar\Login\Services\ApiKey;
+use Iubar\Login\Models\AbstractLogin;
+use Iubar\Login\Models\UserRole;
 use \ReCaptcha\ReCaptcha;
 
 /**
@@ -15,17 +19,7 @@ use \ReCaptcha\ReCaptcha;
  *
  * Everything registration-related happens here.
  */
-class Registration
-{
-	
-	private static $newUserModel = null;
-	
-	public static function setRegNewUserModel(\Iubar\Login\Interfaces\IRegistration $newUserModel){
-		self::$newUserModel = $newUserModel;
-	}
-	public static function getRegNewUserModel(){
-		return self::$newUserModel;
-	}
+class Registration extends AbstractLogin {
 	
 	/**
 	 * Handles the entire registration process for DEFAULT users (not for people who register with
@@ -38,25 +32,25 @@ class Registration
 		$user_password_hash = null;
 		$user_activation_hash = null;
 
-		\Slim\Slim::getInstance()->log->debug("This is registerNewUser()");
+		self::getLogger()->debug("This is registerNewUser()");
 
 		if(self::isDefaultProvider($provider_type)){
 			// stop registration flow if registrationInputValidation() returns false (= anything breaks the input check rules)
 			$validation_result = self::registrationInputValidation($user_name, $user_password_new, $user_password_repeat, $user_email, $user_email_repeat, $captcha);
 			if (!$validation_result) {
-				\Slim\Slim::getInstance()->log->debug("ERROR: registrationInputValidation() failed");
+				self::getLogger()->debug("ERROR: registrationInputValidation() failed");
 				return false;
 			}
 
-			\Slim\Slim::getInstance()->log->debug("OK: registrationInputValidation() returns true");
+			self::getLogger()->debug("OK: registrationInputValidation() returns true");
 
 			// crypt the password with the PHP 5.5's password_hash() function, results in a 60 character hash string.
 			// @see php.net/manual/en/function.password-hash.php for more, especially for potential options
 			$user_password_hash = password_hash($user_password_new, PASSWORD_DEFAULT);
 
-			\Slim\Slim::getInstance()->log->debug("\$user_password_hash: " . $user_password_hash);
+			self::getLogger()->debug("\$user_password_hash: " . $user_password_hash);
 
-			if (\Slim\Slim::getInstance()->config('auth.email.verification.enabled')){
+			if (self::config('auth.email.verification.enabled')){
 				// generate random hash for email verification (40 char string)
 				$user_activation_hash = sha1(uniqid(mt_rand(), true));
 			}
@@ -64,30 +58,30 @@ class Registration
 
 		// check if username already exists
 		if (User::getByUsername($user_name) !== null) {
-			\Slim\Slim::getInstance()->log->debug("Error: Username non disponibile");
+			self::getLogger()->debug("Error: Username non disponibile");
 			Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_USERNAME_ALREADY_TAKEN'));
 			return false;
 		}
 
-		\Slim\Slim::getInstance()->log->debug("OK: username doesn't exists");
+		self::getLogger()->debug("OK: username doesn't exists");
 
 		// check if email already exists
 		if (User::getByEmail($user_email) !== null) {
-			\Slim\Slim::getInstance()->log->debug('Email in uso');
+			self::getLogger()->debug('Email in uso');
 			Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_USER_EMAIL_ALREADY_TAKEN'));
 			return false;
 		}
 
-		\Slim\Slim::getInstance()->log->debug("OK: email doesn't exists");
+		self::getLogger()->debug("OK: email doesn't exists");
 
 		// write user data to database
 		if (!self::writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_activation_hash, $provider_type)) {
-			\Slim\Slim::getInstance()->log->debug('Registrazione fallita');
+			self::getLogger()->debug('Registrazione fallita');
 			Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_ACCOUNT_CREATION_FAILED'));
 			return false;
 		}
 
-		\Slim\Slim::getInstance()->log->debug("OK: writeNewUserToDatabase() returns true");
+		self::getLogger()->debug("OK: writeNewUserToDatabase() returns true");
 
 		$user = User::getByEmail($user_email); // get user_id of the user that has been created
 		if (!$user) {
@@ -95,20 +89,20 @@ class Registration
 			return false;
 		}
 
-		if(self::isDefaultProvider($provider_type) && \Slim\Slim::getInstance()->config('auth.email.verification.enabled')){
+		if(self::isDefaultProvider($provider_type) && self::config('auth.email.verification.enabled')){
 			
 			// send verification email
 			if (self::sendVerificationEmail($user_name, $user_email, $user_activation_hash)) {
-				\Slim\Slim::getInstance()->log->debug("OK: verification email sent to " . $user_email);
+				self::getLogger()->debug("OK: verification email sent to " . $user_email);
 				Session::add(Session::SESSION_FEEDBACK_POSITIVE, Text::get('FEEDBACK_ACCOUNT_SUCCESSFULLY_CREATED'));
 				return true;
 			}
 
-			\Slim\Slim::getInstance()->log->debug("ERROR: sending verification email to " . $user_email . " failed");
+			self::getLogger()->debug("ERROR: sending verification email to " . $user_email . " failed");
 
 			// if verification email sending failed: instantly delete the user
 			self::rollbackRegistrationByUsername($user_name);
-			\Slim\Slim::getInstance()->log->debug("NOTICE: rollbackRegistrationByUsername()");
+			self::getLogger()->debug("NOTICE: rollbackRegistrationByUsername()");
 			Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_VERIFICATION_MAIL_SENDING_FAILED'));
 			return false;
 
@@ -116,7 +110,7 @@ class Registration
 			if (self::sendWelcomeEmail($user_name, $user_email)){
 				return true;
 			}
-			\Slim\Slim::getInstance()->log->debug("ERROR: sending welcome email to " . $user_email . " failed");
+			self::getLogger()->debug("ERROR: sending welcome email to " . $user_email . " failed");
 			Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_WELCOME_MAIL_SENDING_FAILED'));
 			return false;
 		}
@@ -138,19 +132,19 @@ class Registration
 	 * @return bool
 	 */
 	private static function registrationInputValidation($user_name, $user_password_new, $user_password_repeat, $user_email, $user_email_repeat, $captcha) {
-		\Slim\Slim::getInstance()->log->debug("This is registrationInputValidation()");
-		$captcha_enabled = \Slim\Slim::getInstance()->config('captcha.enabled');
-		// NOTA: non si usa $captcha_enabled = Config::get('RECAPTCHA_ENABLED'); perchè bisogna integrarsi con slim per gestire i template twig nelle sezioni relative a recaptcha
+		self::getLogger()->debug("This is registrationInputValidation()");
+		$captcha_enabled = self::config('captcha.enabled');
+		// NOTA: non si usa $captcha_enabled = self::config('RECAPTCHA_ENABLED'); perchè bisogna integrarsi con slim per gestire i template twig nelle sezioni relative a recaptcha
 		if($captcha_enabled){ 
  			// perform all necessary checks
-			$secret = \Slim\Slim::getInstance()->config('captcha.secret');
+			$secret = self::config('captcha.secret');
 			$recaptcha = new ReCaptcha($secret);
 			$resp = $recaptcha->verify($captcha, $_SERVER['REMOTE_ADDR']);
 			if ($resp->isSuccess()) {
-				\Slim\Slim::getInstance()->log->debug("captcha ok");
+				self::getLogger()->debug("captcha ok");
 			} else {
 				$errors = $resp->getErrorCodes();
-				\Slim\Slim::getInstance()->log->debug("wrong captcha", $errors);
+				self::getLogger()->debug("wrong captcha", $errors);
 				Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_CAPTCHA_WRONG'));
 				return false;
 			}
@@ -173,7 +167,7 @@ class Registration
      * @return bool
      */
     private static function validateUserName($user_name){
-    	\Slim\Slim::getInstance()->log->debug("This is validateUserName()");
+    	self::getLogger()->debug("This is validateUserName()");
         if (empty($user_name)) {
             Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_USERNAME_FIELD_EMPTY'));
             return false;
@@ -194,7 +188,7 @@ class Registration
      */
 	private static function validateUserEmail($user_email, $user_email_repeat=null){
 
-		\Slim\Slim::getInstance()->log->debug("This is validateUserEmail()");
+		self::getLogger()->debug("This is validateUserEmail()");
 
 		if (empty($user_email)) {
 			Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_EMAIL_FIELD_EMPTY'));
@@ -210,7 +204,7 @@ class Registration
 		// side-fact: Max length seems to be 254 chars
 		// @see http://stackoverflow.com/questions/386294/what-is-the-maximum-length-of-a-valid-email-address
 		if (!filter_var($user_email, FILTER_VALIDATE_EMAIL)) { // TODO: validate il dominio dell'indirizzo email
-			\Slim\Slim::getInstance()->log->debug("Error: email is not valid");
+			self::getLogger()->debug("Error: email is not valid");
 			Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_EMAIL_DOES_NOT_FIT_PATTERN'));
 			return false;
 		}
@@ -227,20 +221,20 @@ class Registration
      */
     private static function validateUserPassword($user_password_new, $user_password_repeat){
 
-    	\Slim\Slim::getInstance()->log->debug("This is validateUserPassword()");
+    	self::getLogger()->debug("This is validateUserPassword()");
 
         if (empty($user_password_new) OR empty($user_password_repeat)) {
-        	\Slim\Slim::getInstance()->log->debug('Password obbligatoria');
+        	self::getLogger()->debug('Password obbligatoria');
             Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_PASSWORD_FIELD_EMPTY'));
             return false;
         }
         if ($user_password_new !== $user_password_repeat) {
-        	\Slim\Slim::getInstance()->log->debug('Le password non corrispondono');
+        	self::getLogger()->debug('Le password non corrispondono');
             Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_PASSWORD_REPEAT_WRONG'));
             return false;
         }
         if (strlen($user_password_new) < 6) {
-        	\Slim\Slim::getInstance()->log->debug('Password troppo corta');
+        	self::getLogger()->debug('Password troppo corta');
             Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_PASSWORD_TOO_SHORT'));
             return false;
         }
@@ -258,10 +252,34 @@ class Registration
 	 * @return bool
 	 */
 	private static function writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_activation_hash, $provider_type){
-		if(!self::$newUserModel){
-			throw new \Exception("\$newUserModel is null. Set it with setRegNewUserModel()");
+
+		$user = new User();
+		$user->setIdpersonafisica($pf);
+		$user->setUsername($user_name);
+		$user->setEmail($user_email);
+		$now = new \DateTime();
+		$now->setTimestamp(time());
+		$user->setCreationtime($now);
+		$user->setAccounttype(UserRole::READ_WRITE);
+		if(self::isDefaultProvider($provider_type)){
+			$user->setPwdhash($user_password_hash);
+			if (self::config('auth.email.verification.enabled')){
+				$user->setActivationhash($user_activation_hash);
+			} else {
+				$user->setActive(true);
+			}
+		}else{
+			$user->setActive(true); // solo se il provider è esterno, attivo l'utente senza inviare email di conferma
 		}
-		return self::$newUserModel->writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_activation_hash, $provider_type);
+		$ip = self::getRequestIp();
+		$user->setCreationip($ip);
+		$user->setProvidertype($provider_type);
+		$user->setApikey(ApiKey::create());
+
+		User::save($user);
+
+		return true;
+
 	}
 
 	/**
@@ -293,15 +311,14 @@ class Registration
 	 * @return boolean gives back true if mail has been sent, gives back false if no mail could been sent
 	 */
  	private static function sendVerificationEmail($user_name, $user_email, $user_activation_hash){
- 		$app = \Slim\Slim::getInstance();
-
-		$url = $app->config('app.baseurl') . '/' . Config::get('email.verification.url')
+ 		
+		$url = self::config('app.baseurl') . '/' . self::config('email.verification.url')
 			. '/' . urlencode($user_activation_hash) . "?user_name=" . urlencode(Encryption::encrypt($user_name));
 		
-		$subject = Config::get('email.verification.subject');
-		$body = Config::get('email.verification.content') . ' <a href="'.$url.'">'.$url.'</a>';
+		$subject = self::config('email.verification.subject');
+		$body = self::config('email.verification.content') . ' <a href="'.$url.'">'.$url.'</a>';
 		
-		$mail = new \Iubar\Login\Core\EmailSender();
+		$mail = new EmailSender();
 		$mail->setTo($user_email);
 		$mail->setSubject($subject);
 		$mail->setBodyHtml($body);
@@ -317,10 +334,10 @@ class Registration
 	}
 
 	private static function sendWelcomeEmail($user_name, $user_email){
-		$subject = Config::get('email.welcome.subject');
-		$body = Config::get('email.welcome.content');
+		$subject = self::config('email.welcome.subject');
+		$body = self::config('email.welcome.content');
 
-		$mail = new \Iubar\Login\Core\EmailSender();
+		$mail = new EmailSender();
 		$mail->setTo($user_email);
 		$mail->setSubject($subject);
 		$mail->setBodyHtml($body);

@@ -3,41 +3,31 @@
 namespace Iubar\Login\Core;
 
 use Iubar\Net\SmtpMailer;
+use Iubar\Login\Models\AbstractLogin;
 
 class EmailSender {
    
-    private $app = null;
     private $m = null; 
     
 	public function __construct(){
-	    $this->app = \Slim\Slim::getInstance();
-// 	    $monolog_writer = $this->app ->config('log.writer');
-// 	    if ($monolog_writer !== null){
-// 	       $logger = $monolog_writer->get_resource();
-// 	    }else{
-// 	        die("\$monolog_writer IS NULL");
-// 	    }
-// 	    if($logger==null){
-// 	        die("LOGGER IS NULL");
-// 	    }
 	    $this->m = SmtpMailer::factory('mailgun');
-// 	    $this->m->setLogger($logger);
-// 	    $this->m->enableAgentLogger(true);
-  
+	}
+	
+	protected function config($key){
+		return AbstractLogin::config($key);
 	}
 	
 	public function go($transactional = false){
 	    if (count($this->m->from_array) <= 0 || $this->m->from_array == null){
 	        if ($transactional){
-	            $this->setFrom($this->app->config('email.transactional'), $this->app->config('app.name'));
+	            $this->setFrom($this->config('email.transactional'), $this->config('app.name'));
 	        } else {
-	            $this->setFrom($this->app->config('email.postmaster'), $this->app->config('app.name'));
+	            $this->setFrom($this->config('email.postmaster'), $this->config('app.name'));
 	        }
-	    }
-	    
- 	    $this->m->smtp_usr = $this->app->config('email.user');
-	    $this->m->smtp_pwd = $this->app->config('email.mailgun.password');
-	    $this->m->smtp_port = $this->app->config('email.smtp.port');
+	    }	    
+ 	    $this->m->smtp_usr = $this->config('email.user');
+	    $this->m->smtp_pwd = $this->config('email.mailgun.password');
+	    $this->m->smtp_port = $this->config('email.smtp.port');
 		return $this->m->send();
 	}
 	

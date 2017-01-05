@@ -2,17 +2,26 @@
 
 namespace Iubar\Login\Core;
 
+use Iubar\Login\Models\User;
 use Iubar\Login\Models\Login as LoginModel;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Csrf;
+use Iubar\Login\Models\AbstractLogin;
+use Iubar\Login\Models\UserRole;
 
-abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractController {
+protected abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractController {
 	
-	public $app = null;
+	public static $route_after_login = '/welcome';
+	
+	protected $app = null;
+	protected $logger = null;
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function __construct(){
-		$this->app = \Slim\Slim::getInstance();
-	
+		$this->app = AbstractLogin::getInstance();
+		$this->logger = $this->app->log;
+		
 		// always initialize a session
 		Session::init();
 	
@@ -20,22 +29,51 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 		$this->checkSessionConcurrency();
 	
 		// user is not logged in but has remember-me-cookie ? then try to login with cookie ("remember me" feature)
-		if (!Session::userIsLoggedIn() && $this->app->getCookie('remember_me')) {
-			$url = $this->app->config('app.baseurl') . '/login/loginWithCookie';
+		if (!Session::userIsLoggedIn() && $this->getCookie('remember_me')) {
+			$url = $this->config('app.baseurl') . '/login/loginWithCookie';
 			if(!$this->routeIs($url)){
-				$this->app->redirect($url);
+				$this->redirect($url);
 			}
 		}
+	}
 	
+	protected function getCookie($key){
+		return $this->app->getCookie($key);
+	}
+	
+	protected function render($twig, $data){
+		$this->app->render($twig, $data);
+	}
+	
+	protected function redirect($url){
+		$this->app->redirect($url);
+	}
+	
+	protected function config($key){
+		return $this->app->config($key);
+	}
+
+	protected function params($key){
+		return $this->app->request->params($key);
+	}
+	
+	protected function post($key){
+		return $this->app->request->post($key);
+	}
+	
+	protected function get($key){
+		return $this->app->request->get($key);
 	}
 	
 	public function routeIs($url){
-		if ($url == $this->app->config('app.baseurl') . $this->app->request->getResourceUri()){
+		if ($url == ($this->config('app.baseurl') . $this->app->request->getResourceUri())){
 			return true;
 		} else {
 			return false;
 		}
 	}
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	/**
 	 * The normal authentication flow, just check if the user is logged in (by looking into the session).
@@ -47,12 +85,7 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 	 * application available for logged-in users.
 	 */
 	public function checkAuthentication(){
-	
-		// initialize the session (if not initialized yet)
-		Session::init();
-	
-		// $this->checkSessionConcurrency();
-	
+		
 		// if user is not logged in
 		if (!Session::userIsLoggedIn()) {
 			// ... then treat user as "not logged in", destroy session, redirect to login page
@@ -61,8 +94,8 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 			// as a parameter argument, making it possible to send the user back to where he/she came from after a
 			// successful login
 	
-			$this->app->redirect($this->app->config('app.baseurl') . '/login?redirect=' . urlencode($_SERVER['REQUEST_URI']));
-			// in alterantiva a $_SERVER['REQUEST_URI'] forse si potrebbe uare $this->app->request()->getPath();
+			$this->redirect($this->config('app.baseurl') . '/login?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+			// in ambiente Slim, in alterantiva a $_SERVER['REQUEST_URI'] forse si potrebbe uare $this->request->getPath();
 	
 			// to prevent fetching views via cURL (which "ignores" the header-redirect above) we leave the application
 			// the hard way, via exit(). @see https://github.com/panique/php-login/issues/453
@@ -73,19 +106,14 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 	
 	/**
 	 * The admin authentication flow, just check if the user is logged in (by looking into the session) AND has
-	 * user role type 7 (currently there's only type 1 (normal user), type 2 (premium user) and 7 (admin)).
+	 * user role type 7. Currently there's only type 1 (normal user), type 2 (premium user) and 7 (admin).
 	 * If user is not, then he will be redirected to login page and the application is hard-stopped via exit().
 	 * Using this method makes only sense in controllers that should only be used by admins.
 	 */
 	public function checkAdminAuthentication(){
-	
-		// initialize the session (if not initialized yet)
-		Session::init();
-	
-		// $this->checkSessionConcurrency();
-	
-		// if user is not logged in or is not an admin (= not role type 7)
-		if (!Session::userIsLoggedIn() || Session::get(Session::SESSION_USER_ACCOUNT_TYPE) != 7) {
+		
+		// if user is not logged in or is not an admin
+		if (!Session::userIsLoggedIn() || Session::get(Session::SESSION_USER_ACCOUNT_TYPE) != UserRole::ADMIN) {
 			// ... then treat user as "not logged in", destroy session, redirect to login page
 			Session::destroy();
 	
@@ -98,13 +126,8 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 		}
 	}
 	
-	public function checkRoleTypeAuthentication($type=1){
-	
-		// initialize the session (if not initialized yet)
-		Session::init();
-	
-		// $this->checkSessionConcurrency();
-	
+	public function checkRoleTypeAuthentication($type){
+		
 		// if user is not logged in or the account type is not $type
 		if (!Session::userIsLoggedIn() || Session::get(Session::SESSION_USER_ACCOUNT_TYPE) != $type) {
 			// ... then treat user as "not logged in", destroy session, redirect to login page
@@ -120,7 +143,7 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 	}
 	
 	public function redirectHome(){
-		$this->app->redirect($this->app->config('app.baseurl'));
+		$this->redirect($this->config('app.baseurl'));
 	}
 	
 	public function redirectToLogin(){
@@ -129,15 +152,14 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 		if($redirect){
 			$url = '/login?redirect=' . urlencode($redirect);
 		}
-		$this->app->redirect($this->app->config('app.baseurl') . $url);
+		$this->redirect($this->config('app.baseurl') . $url);
 	}
 	
 	public function isAdmin(){
 		$b = false;
-		if (Session::userIsLoggedIn() && Session::get(Session::SESSION_USER_ACCOUNT_TYPE) == 7) {
+		if (Session::userIsLoggedIn() && Session::get(Session::SESSION_USER_ACCOUNT_TYPE) == UserRole::ADMIN) {
 			$b = true;
 		}
-	
 		return $b;
 	}
 	
@@ -148,7 +170,7 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 	 */
 	public function checkSessionConcurrency(){
 		if(Session::userIsLoggedIn()){
-			// $this->app->log->debug("userIsLoggedIn");
+			// $this->logger->debug("userIsLoggedIn");
 			if(Session::isConcurrentSessionExists()){
 				// TODO: log something...
 				LoginModel::logout();
@@ -167,7 +189,7 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 	}
 	
 	public function getRedirectUrl(){
-	    $redirect = $this->app->request->get('redirect');
+	    $redirect = $this->get('redirect');
 	    $redirect = $this->cleanUrl($redirect);
 	    return $redirect;
 	}
@@ -181,21 +203,18 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 	}
 	
 	private function redirectAfterLoginError(){
-		$this->app->log->debug("Login failed");
+		$this->logger->debug("Login failed");
 		$this->redirectToLogin();
 	}
 	
 	protected function renderLogin(){
 		$redirect = $this->getRedirectUrl();
-		// FIXME: mockup hard-coded
-		//$xml = "<xml><note><to>Tove</to><from>Jani</from><heading>Reminder</heading><body>Don't forget me this weekend!</body></note></xml>";
-		//$redirect = "/api/fattura/import-directly/" . XmlUtil::base64url_encode($xml); // dimensione massima consigliata 64k
 	
 		$csrf_token = Csrf::makeToken(); // https://en.wikipedia.org/wiki/Cross-site_request_forgery
 	
-		$this->app->render($this->app->config('app.templates.path') . '/login/index.twig', array(
+		$this->render($this->config('app.templates.path') . '/login/index.twig', array(
 				'type' => 1,
-				'captcha_key' => $this->app->config('captcha.key'),
+				'captcha_key' => $this->config('captcha.key'),
 				'redirect' => urlencode($redirect),
 				'csrf_token' => $csrf_token,
 				'feedback_positive' => $this->getFeedbackPositiveMessages(),
@@ -204,15 +223,14 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 	}
 	
 	protected function redirectAfterSuccessfullyLogin(){
-		$app = $this->app;
-		$redirect = $this->cleanUrl($app->request->params('redirect'));
+		$redirect = $this->cleanUrl($this->params('redirect'));
 		if ($redirect) {
-			$app->log->debug('login_successfully - redirecting to: ' . $redirect);
-			$app->redirect($app->config('app.baseurl') . $redirect);
+			$this->logger->debug('login_successfully - redirecting to: ' . $redirect);
+			$this->redirect($this->config('app.baseurl') . $redirect);
 			// TODO: Verificare se lo statement precedente lavora correttamente sia con indirizzi relativi che assoluti
 		} else {
-			$app->log->debug('login_successfully - deafult redirecting to: ' . $app->config('auth.route.afterlogin'));
-			$app->redirect($app->config('app.baseurl') . $app->config('auth.route.afterlogin'));
+			$this->logger->debug('login_successfully - deafult redirecting to: ' . $this->config('auth.route.afterlogin'));
+			$this->redirect($this->config('app.baseurl') . $this->config('auth.route.afterlogin'));
 		}
 	}
 	
