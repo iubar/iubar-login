@@ -66,7 +66,7 @@ class Session {
     }
     
 	protected function getLogger(){
-		return AbstractLogin::getLogger();
+		return AbstractLogin::getAppInstance();
 	}
 	
     public static function regenerateId(){

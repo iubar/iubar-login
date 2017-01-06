@@ -19,7 +19,7 @@ abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractCont
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	public function __construct(){
-		$this->app = AbstractLogin::getInstance();
+		$this->app = AbstractLogin::getAppInstance();
 		$this->logger = $this->app->log;
 		
 		// always initialize a session
