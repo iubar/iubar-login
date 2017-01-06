@@ -28,7 +28,7 @@ class Avatar extends AbstractLogin {
     {
         return 'http://www.gravatar.com/avatar/' .
         md5(strtolower(trim($email))) .
-        '?s=' . self::config('avatar.size') . '&d=' . self::config('gravatar.imageset') . '&r=' . self::config('gravatar.rating');
+        '?s=' . self::config('auth.avatar.size') . '&d=' . self::config('auth.gravatar.imageset') . '&r=' . self::config('auth.gravatar.rating');
     }
     /**
      * Gets the user's avatar file path
@@ -38,9 +38,9 @@ class Avatar extends AbstractLogin {
      */
     public static function getPublicAvatarFilePathOfUser($user_has_avatar, $user_name){
         if ($user_has_avatar) {        	
-            return self::config('app.baseurl') . self::config('avatar.path.public') . self::getIdForImage($user_name) . '.jpg';
+            return self::config('app.baseurl') . self::config('auth.avatar.path.public') . self::getIdForImage($user_name) . '.jpg';
         }
-        return self::config('app.baseurl') . self::config('avatar.path.public') . self::config('avatar.default');
+        return self::config('app.baseurl') . self::config('auth.avatar.path.public') . self::config('auth.avatar.default');
     }
     /**
      * Gets the user's avatar file path
@@ -50,9 +50,9 @@ class Avatar extends AbstractLogin {
     public static function getPublicUserAvatarFilePathByUserName($userName){
     	$user = User::getByUsername($userName);
         if ($user && $user->getHasavatar()) {
-            return self::config('app.baseurl') . self::config('avatar.path.public') . self::getIdForImage($user_name) . '.jpg';
+            return self::config('app.baseurl') . self::config('auth.avatar.path.public') . self::getIdForImage($user_name) . '.jpg';
         }
-        return self::config('app.baseurl') . self::config('avatar.path.public') . self::config('avatar.default');
+        return self::config('app.baseurl') . self::config('auth.avatar.path.public') . self::config('auth.avatar.default');
     }
     /**
      * Create an avatar picture (and checks all necessary things too)
@@ -64,8 +64,8 @@ class Avatar extends AbstractLogin {
         if (self::isAvatarFolderWritable() AND self::validateImageFile()) {
             // create a jpg file in the avatar folder, write marker to database
             $user_name = Session::get(Session::SESSION_USER_NAME);
-            $target_file_path = self::config('avatar.path') . self::getIdForImage($user_name);
-            self::resizeAvatarImage($_FILES['avatar_file']['tmp_name'], $target_file_path, self::config('avatar.size'), self::config('avatar.size'));
+            $target_file_path = self::config('auth.avatar.path') . self::getIdForImage($user_name);
+            self::resizeAvatarImage($_FILES['avatar_file']['tmp_name'], $target_file_path, self::config('auth.avatar.size'), self::config('auth.avatar.size'));
             self::writeAvatarToDatabase(Session::getDecoded(Session::SESSION_USER_NAME));
             Session::set(Session::SESSION_USER_AVATAR_FILE, self::getPublicUserAvatarFilePathByUserName(Session::get(Session::SESSION_USER_NAME)));
             Session::add(Session::SESSION_FEEDBACK_POSITIVE, Text::get('FEEDBACK_AVATAR_UPLOAD_SUCCESSFUL'));
@@ -77,7 +77,7 @@ class Avatar extends AbstractLogin {
      * @return bool success status
      */
     public static function isAvatarFolderWritable(){
-        if (is_dir(self::config('avatar.path')) AND is_writable(self::config('avatar.path'))) {
+        if (is_dir(self::config('auth.avatar.path')) AND is_writable(self::config('auth.avatar.path'))) {
             return true;
         }
         Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_AVATAR_FOLDER_DOES_NOT_EXIST_OR_NOT_WRITABLE'));
@@ -103,7 +103,7 @@ class Avatar extends AbstractLogin {
         // get the image width, height and mime type
         $image_proportions = getimagesize($_FILES['avatar_file']['tmp_name']);
         // if input file too small, [0] is the width, [1] is the height
-        if ($image_proportions[0] < self::config('avatar.size') OR $image_proportions[1] < self::config('avatar.size')) {
+        if ($image_proportions[0] < self::config('auth.avatar.size') OR $image_proportions[1] < self::config('auth.avatar.size')) {
             Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_AVATAR_UPLOAD_TOO_SMALL'));
             return false;
         }
@@ -166,7 +166,7 @@ class Avatar extends AbstractLogin {
         $thumb = imagecreatetruecolor($final_width, $final_height);
         imagecopyresampled($thumb, $myImage, 0, 0, $horizontalCoordinateOfSource, $verticalCoordinateOfSource, $final_width, $final_height, $smallestSide, $smallestSide);
         // add '.jpg' to file path, save it as a .jpg file with our $destination_filename parameter
-        imagejpeg($thumb, $destination . '.jpg', self::config('avatar.quality'));
+        imagejpeg($thumb, $destination . '.jpg', self::config('auth.avatar.quality'));
         imagedestroy($thumb);
         if (file_exists($destination)) {
             return true;
@@ -210,12 +210,12 @@ class Avatar extends AbstractLogin {
     	$avatarId = self::getIdForImage($userName);
     	
         // Check if file exists
-        if (!file_exists(self::config('avatar.path') . $avatarId . ".jpg")) {
+        if (!file_exists(self::config('auth.avatar.path') . $avatarId . ".jpg")) {
             Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get("FEEDBACK_AVATAR_IMAGE_DELETE_NO_FILE"));
             return false;
         }
         // Delete avatar file
-        if (!unlink(self::config('avatar.path') . $avatarId . ".jpg")) {
+        if (!unlink(self::config('auth.avatar.path') . $avatarId . ".jpg")) {
             Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get("FEEDBACK_AVATAR_IMAGE_DELETE_FAILED"));
             return false;
         }

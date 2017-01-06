@@ -9,7 +9,7 @@ use Iubar\Login\Services\Csrf;
 use Iubar\Login\Models\AbstractLogin;
 use Iubar\Login\Models\UserRole;
 
-protected abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractController {
+abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAbstractController {
 	
 	public static $route_after_login = '/welcome';
 	
@@ -212,9 +212,9 @@ protected abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAb
 	
 		$csrf_token = Csrf::makeToken(); // https://en.wikipedia.org/wiki/Cross-site_request_forgery
 	
-		$this->render($this->config('app.templates.path') . '/login/index.twig', array(
+		$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.index'), array(
 				'type' => 1,
-				'captcha_key' => $this->config('captcha.key'),
+				'captcha_key' => $this->config('auth.captcha.key'),
 				'redirect' => urlencode($redirect),
 				'csrf_token' => $csrf_token,
 				'feedback_positive' => $this->getFeedbackPositiveMessages(),
@@ -229,8 +229,8 @@ protected abstract class LoginAbstractController extends \Iubar\Slim\Core\HtmlAb
 			$this->redirect($this->config('app.baseurl') . $redirect);
 			// TODO: Verificare se lo statement precedente lavora correttamente sia con indirizzi relativi che assoluti
 		} else {
-			$this->logger->debug('login_successfully - deafult redirecting to: ' . $this->config('auth.route.afterlogin'));
-			$this->redirect($this->config('app.baseurl') . $this->config('auth.route.afterlogin'));
+			$this->logger->debug('login_successfully - deafult redirecting to: ' . $this->config('auth.routes.afterlogin'));
+			$this->redirect($this->config('app.baseurl') . $this->config('auth.routes.afterlogin'));
 		}
 	}
 	

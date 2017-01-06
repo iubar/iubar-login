@@ -1,14 +1,14 @@
 <?php
 
-namespace Iubar\Login\Models
+namespace Iubar\Login\Models;
 
-protected abstract class AbstractLogin {
+abstract class AbstractLogin {
 
 	static $app = null;
 	
-	protected static function getAppInstance(){
+	private static function getAppInstance(){
 		if(self::$app == null){
-			self::$app =  return \Slim\Slim::getInstance();
+			self::$app =  \Slim\Slim::getInstance();
 		}
 		return self::$app;
 	}

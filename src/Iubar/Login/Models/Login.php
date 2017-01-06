@@ -328,8 +328,8 @@ class Login extends AbstractLogin {
 		// set session cookie setting manually,
 		// Why? because you need to explicitly set session expiry, path, domain, secure, and HTTP.
 		// @see https://www.owasp.org/index.php/PHP_Security_Cheat_Sheet#Cookies
-		setcookie(session_name(), session_id(), time() + self::config('session.runtime'), self::config('cookie.path'),
-				self::config('cookie.domain'), self::config('cookie.secure'), self::config('cookie.http'));
+		setcookie(session_name(), session_id(), time() + self::config('auth.session.runtime'), self::config('auth.cookie.path'),
+				self::config('auth.cookie.domain'), self::config('auth.cookie.secure'), self::config('auth.cookie.http'));
 		
 		self::getLogger()->debug("Session name: " . session_name() . " id: " . session_id());
 	}
@@ -409,8 +409,8 @@ class Login extends AbstractLogin {
         // attacker could steal your remember-me cookie string and would login itself).
         // If you are using HTTPS, then you should set the "secure" flag (the second one from right) to true, too.
         // @see http://www.php.net/manual/en/function.setcookie.php
-        setcookie(self::COOKIE_REMEMBER_ME, $cookie_string, time() + self::config('cookie.runtime'), self::config('cookie.path'),
-            self::config('cookie.domain'), self::config('cookie.secure'), self::config('cookie.http'));
+        setcookie(self::COOKIE_REMEMBER_ME, $cookie_string, time() + self::config('auth.cookie.runtime'), self::config('auth.cookie.path'),
+            self::config('auth.cookie.domain'), self::config('auth.cookie.secure'), self::config('auth.cookie.http'));
 	}
 	
 	/**
@@ -431,8 +431,8 @@ class Login extends AbstractLogin {
 	    }
 	    
         // delete remember_me cookie in browser
-        setcookie(self::COOKIE_REMEMBER_ME, false, time() - (3600 * 24 * 3650), self::config('cookie.path'),
-            self::config('cookie.domain'), self::config('cookie.secure'), self::config('cookie.http'));
+        setcookie(self::COOKIE_REMEMBER_ME, false, time() - (3600 * 24 * 3650), self::config('auth.cookie.path'),
+            self::config('auth.cookie.domain'), self::config('auth.cookie.secure'), self::config('auth.cookie.http'));
     }
 	
 	/**

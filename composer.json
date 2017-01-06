@@ -12,16 +12,10 @@
 		}		
 	],
     "require": {
-<<<<<<< HEAD
-		"google/apiclient" : "1.1.7",
-		"google/recaptcha": "~1.1",
-		"facebook/php-sdk-v4" : "^5.0",
-=======
 		"google/apiclient" : "2.1.0",
 		"google/recaptcha": "~1.1",
 		"facebook/php-sdk-v4" : "^5.4",
 		"swiftmailer/swiftmailer" : "*",
->>>>>>> upgrade-googleapiclient
 		"robloach/component-installer": "*",
 		"iubar/iubar-php-common": "dev-master@dev",
 		"iubar/iubar-slim-core": "dev-master@dev"

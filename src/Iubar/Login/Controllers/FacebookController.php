@@ -32,7 +32,7 @@ class FacebookController extends LoginAbstractController {
 				$this->redirect($this->config('app.baseurl') .'/login/fb/callback' . '?redirect=' . urlencode($redirect));
 			}else{
 				$loginUrl = FacebookModel::getLoginUrl();
-				$this->render($this->config('app.templates.path') . '/login/external/fb_login_server_side.twig', array(
+				$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.fb-login-server-side'), array(
 						'redirect' => urlencode($redirect),
 						'login_url' => $loginUrl,
 						'feedback_positive' => $this->getFeedbackPositiveMessages(),
@@ -40,7 +40,7 @@ class FacebookController extends LoginAbstractController {
 				));
 			}
 		}else{
-		    $redirect_url = $this->config('auth.route.afterlogin');
+		    $redirect_url = $this->config('auth.routes.afterlogin');
 		    if ($redirect){
 		        $redirect_url .= '?redirect=' . urlencode($redirect);
 		    }
@@ -86,11 +86,11 @@ class FacebookController extends LoginAbstractController {
 	
 	public function getLoginButton(){
 		$this->logger->debug(get_class($this) . '->getLoginButton()');
-		$this->render($this->config('app.templates.path') . '/login/external/fb_button.twig', array());
+		$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.fb_button'), array());
 	}
 	public function getLogout(){
 		$this->logger->debug(get_class($this) . '->getLogout()');
-		$this->render($this->config('app.templates.path') . '/login/external/fb_logout.twig', array());
+		$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.fb-logout'), array());
 	}
 
 }

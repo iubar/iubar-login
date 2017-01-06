@@ -34,7 +34,7 @@ class GoogleController extends LoginAbstractController {
 			}else{
 				$redirect = $this->getRedirectUrl();
 				$loginUrl = GoModel::getLoginUrl();
-				$this->render($this->config('app.templates.path') . '/login/external/go_login_server_side.twig', array(
+				$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.go-login-server-side'), array(
 						'redirect' => urlencode($redirect),
 						'login_url' => $loginUrl,
 						'feedback_positive' => $this->getFeedbackPositiveMessages(),
@@ -42,7 +42,7 @@ class GoogleController extends LoginAbstractController {
 				));
 			}
 		}else{
-		    $redirect_url = $this->config('auth.route.afterlogin');
+		    $redirect_url = $this->config('auth.routes.afterlogin');
 		    if ($redirect){
 		        $redirect_url .= '?redirect=' . urlencode($redirect);
 		    }
@@ -53,15 +53,15 @@ class GoogleController extends LoginAbstractController {
 	
 	public function getLoginCustomButton(){
 		$this->logger->debug(get_class($this) . '->getLoginCustomButton()');
-		$this->render($this->config('app.templates.path') . '/login/external/go_custom_button.twig', array());
+		$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.go-custom-button'), array());
 	}
 	public function getLoginButton(){
 		$this->logger->debug(get_class($this) . '->getLoginButton()');
-		$this->render($this->config('app.templates.path') . '/login/external/go_button.twig', array());
+		$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.go-button'), array());
 	}
 	public function getLogout(){
 		$this->logger->debug(get_class($this) . '->getLogout()');
-		$this->render($this->config('app.templates.path') . '/login/external/go_logout.twig', array());
+		$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.go-logout'), array());
 	}
 
 	public function getLoginCallback(){

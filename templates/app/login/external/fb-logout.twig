@@ -1,0 +1,30 @@
+{% include 'fattura/login/external/fb-header.twig' %}
+
+<div id="status"></div>
+ 
+ <div><a href="#" onclick="fbLogout();">Logout from FB</a></div>
+ 
+ <script>
+ function fbLogout(response) {
+	 if (response.status === 'connected') {
+		    // Logged into your app and Facebook.
+			 	console.log('you\'re connected to fb');
+				FB.logout(function(response) {
+					// Person is now logged out
+					console.log('logged out');
+					document.getElementById('status').innerHTML = 'Disconnesso da FB';
+				});
+							 
+		  } else if (response.status === 'not_authorized') {
+		    // The person is logged into Facebook, but not your app.
+			  console.log('you\'re not authorized');
+		  } else {
+		    // The person is not logged into Facebook, so we're not sure if
+		    // they are logged into this app or not.
+			  document.getElementById('status').innerHTML = 'Can\'t logout: you aren\'t logged in.';
+		  }
+
+		 // window.location = "{{ redirect_to }}"; 	
+
+}
+</script> 

@@ -1,0 +1,10 @@
+
+questa è la pagina di login
+
+<a href="{{ login_url }}">Log in with Google!</a>
+
+<script>
+var encoded = "{{ login_url }}";
+var decoded = encoded.replace(/&amp;/g, '&');
+window.location.href = decoded;
+</script>

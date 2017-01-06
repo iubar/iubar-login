@@ -93,8 +93,8 @@ class LoginController extends LoginAbstractController {
 	 */
 	public function getRequestPasswordReset(){
 		$this->logger->debug(get_class($this).'->getRequestPasswordReset()');
-		$this->render($this->config('app.templates.path') . '/login/request-password-reset.twig', array(
-			'captcha_key' => $this->config('captcha.key'),
+		$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.request-password-reset'), array(
+			'captcha_key' => $this->config('auth.captcha.key'),
 			'feedback_positive' => $this->getFeedbackPositiveMessages(),
 			'feedback_negative' => $this->getFeedbackNegativeMessages()				
 		));
@@ -127,7 +127,7 @@ class LoginController extends LoginAbstractController {
 		$user_name = Encryption::decrypt($this->get("user_name"));
 		if (PasswordResetModel::verifyPasswordReset($user_name, $verification_code)) {
 			
-			$this->render($this->config('app.templates.path') . '/login/password-reset.twig', array(
+			$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.password-reset'), array(
 				'user_name' => $user_name,
 				'user_password_reset_hash' => $verification_code,
 				'feedback_positive' => $this->getFeedbackPositiveMessages(),
@@ -135,9 +135,10 @@ class LoginController extends LoginAbstractController {
 			));	
 		} else {
 			$this->redirectToLogin();
-	/**
 		}
 	}
+	
+	/**
 	 * Set the new password
 	 * Please note that this happens while the user is not logged in. The user identifies via the data provided by the
 	 * password reset link from the email, automatically filled into the <form> fields. See verifyPasswordReset()

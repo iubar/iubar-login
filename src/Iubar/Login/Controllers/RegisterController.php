@@ -25,7 +25,7 @@ class RegisterController extends LoginAbstractController {
 
 			$data = array();
 			$data['type'] = 2;
-			$data['captcha_key'] = $this->config('captcha.key');
+			$data['captcha_key'] = $this->config('auth.captcha.key');
 			$data['feedback_positive'] = $this->getFeedbackPositiveMessages();
 			$data['feedback_negative'] = $this->getFeedbackNegativeMessages();
 			
@@ -34,7 +34,7 @@ class RegisterController extends LoginAbstractController {
 				$data['redirect'] = urlencode($redirect);
 			}
 			
-			$this->render($this->config('app.templates.path') . '/login/index.twig', $data);
+			$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.index'), $data);
 		}
 	}
 	
@@ -74,7 +74,7 @@ class RegisterController extends LoginAbstractController {
 			$login_successful = LoginModel::login($user_name, $user_password_new, true, UserModel::PROVIDER_TYPE_DEFAULT);
 			
 			if($login_successful){
-				$redirect_url = $this->config('auth.route.afterlogin');
+				$redirect_url = $this->config('auth.routes.afterlogin');
 					$redirect_url = $this->config('app.baseurl') .'/login?redirect=' . urlencode($redirect);
 				}	
 			
@@ -103,7 +103,7 @@ class RegisterController extends LoginAbstractController {
 			if($success){
 				// TODO: valutare se inviare mail di benvenuto all'utente
 			}
-			$this->render($this->config('app.templates.path') . '/login/verify.twig', array(
+			$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.verify'), array(
 				'feedback_positive' => $this->getFeedbackPositiveMessages(), 
 				'feedback_negative' => $this->getFeedbackNegativeMessages()					
 			));

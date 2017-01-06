@@ -26,10 +26,10 @@ class PasswordReset extends AbstractLogin {
 	 */
 	public static function requestPasswordReset($user_name_or_email, $captcha){	
 		self::getLogger()->debug("This is registrationInputValidation()");
-		$captcha_enabled = self::config('captcha.enabled');
+		$captcha_enabled = self::config('auth.captcha.enabled');
 		if($captcha_enabled){
 			// perform all necessary checks
-			$secret = self::config('captcha.secret');
+			$secret = self::config('auth.captcha.secret');
 			$recaptcha = new ReCaptcha($secret);
 			$resp = $recaptcha->verify($captcha, $_SERVER['REMOTE_ADDR']);
 			if ($resp->isSuccess()) {
@@ -111,7 +111,7 @@ class PasswordReset extends AbstractLogin {
 	 */
 	public static function sendPasswordResetMail($user_name, $user_password_reset_hash, $user_email) {
 		// create email body
-		$url = self::config('app.baseurl') . '/' . self::config('email.pwdreset.url') . '/'  . urlencode($user_password_reset_hash) . "?user_name=" . urlencode(Encryption::encrypt($user_name));
+		$url = self::config('app.baseurl') . '/' . self::config('auth.routes.pwdreset') . '/'  . urlencode($user_password_reset_hash) . "?user_name=" . urlencode(Encryption::encrypt($user_name));
 		$subject = self::config('email.pwdreset.subject');
 		$body = self::config('email.pwdreset.content') . ' <a href="'.$url.'">'.$url.'</a>';
 		$mail = new EmailSender();

@@ -133,11 +133,11 @@ class Registration extends AbstractLogin {
 	 */
 	private static function registrationInputValidation($user_name, $user_password_new, $user_password_repeat, $user_email, $user_email_repeat, $captcha) {
 		self::getLogger()->debug("This is registrationInputValidation()");
-		$captcha_enabled = self::config('captcha.enabled');
+		$captcha_enabled = self::config('auth.captcha.enabled');
 		// NOTA: non si usa $captcha_enabled = self::config('RECAPTCHA_ENABLED'); perchè bisogna integrarsi con slim per gestire i template twig nelle sezioni relative a recaptcha
 		if($captcha_enabled){ 
  			// perform all necessary checks
-			$secret = self::config('captcha.secret');
+			$secret = self::config('auth.captcha.secret');
 			$recaptcha = new ReCaptcha($secret);
 			$resp = $recaptcha->verify($captcha, $_SERVER['REMOTE_ADDR']);
 			if ($resp->isSuccess()) {
@@ -312,7 +312,7 @@ class Registration extends AbstractLogin {
 	 */
  	private static function sendVerificationEmail($user_name, $user_email, $user_activation_hash){
  		
-		$url = self::config('app.baseurl') . '/' . self::config('email.verification.url')
+		$url = self::config('app.baseurl') . '/' . self::config('auth.routes.verification')
 			. '/' . urlencode($user_activation_hash) . "?user_name=" . urlencode(Encryption::encrypt($user_name));
 		
 		$subject = self::config('email.verification.subject');

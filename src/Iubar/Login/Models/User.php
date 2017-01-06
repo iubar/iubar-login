@@ -5,7 +5,7 @@ namespace Iubar\Login\Models;
 use Iubar\Login\Core\DbResource;
 use Iubar\Login\Models\Avatar as AvatarModel;
 use Iubar\Login\Models\External as ExternalModel;
-use Iubar\Login\Models\Registration
+use Iubar\Login\Models\Registration;
 use Iubar\Login\Models\AbstractLogin;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Text;
@@ -169,7 +169,7 @@ class User extends AbstractLogin {
     
     public static function getUserAvatarLink(Application\Models\User $user){
     	$user_avatar_link = null;
-    	if (self::config('gravatar.enabled')) {
+    	if (self::config('auth.gravatar.enabled')) {
     		$user_avatar_link = AvatarModel::getGravatarLinkByEmail($user->getEmail());
     	} else {
     		$user_avatar_link = AvatarModel::getPublicAvatarFilePathOfUser($user->getHasavatar(), $user->getUsername());
