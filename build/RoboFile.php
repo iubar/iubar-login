@@ -83,18 +83,32 @@ class RoboFile extends \Robo\Tasks {
 		$this->conn();				
     }
 	
-	public function createApiKey(){ // TODO: 1) includere i vendors 2) instanziare slim altrimenti non è possibile eseguire le query
+	public function createApiKey(){
+	    // TODO: 1) includere i vendors 2) instanziare slim altrimenti non è possibile eseguire le query
 		$api_key = ApiKey::create();
 		$this->say($api_key);
 	}
 
-    public function sql() {
-        // http://apidocjs.com/
-        $path = "C:/Users/Daniele/workspace_php/php-presenze/www";
-        $mwb_file = __DIR__ . '/../' . 'db/er/auth.mwb';
-        $output_file = __DIR__ . '/../' . 'db/sql/cacenllami.sql';
-        $cmd = "mwb2sql.bat $mwb_file $output_file";
-        
+    public function createSql() {
+        $db_folder = __DIR__ . '/..';
+        $mwb_file = $db_folder . '/db/er/auth.mwb';
+        $output_file = $db_folder . '/db/sql/cancellami.sql';
+        $cmd = "mwb2sql.bat $mwb_file $output_file";        
         $this->taskExec($cmd)->dir(__DIR__ )->run();
+    }
+    
+    public function checkSystemPath(){
+        // TODO: add C:\Program Files (x86)\Vagrant
+        $path_str = getenv('PATH'); 
+        $this->say('PATH: ' . $path_str); 
+        $path_array = explode(';', $path_str);
+        foreach ($path_array as $path){
+            $this->say('checking... ' . $path);
+            if(!is_dir($path)){
+                $error = 'ERROR: ' . $path;
+                $this->say($error);
+            }
+        }
+        
     }
 }

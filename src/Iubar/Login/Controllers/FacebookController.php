@@ -86,7 +86,7 @@ class FacebookController extends LoginAbstractController {
 	
 	public function getLoginButton(){
 		$this->logger->debug(get_class($this) . '->getLoginButton()');
-		$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.fb_button'), array());
+		$this->render($this->config('app.templates.path') . '/' .  $this->config('auth.views.fb-button'), array());
 	}
 	public function getLogout(){
 		$this->logger->debug(get_class($this) . '->getLogout()');

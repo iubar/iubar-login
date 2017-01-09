@@ -442,6 +442,7 @@ class Login extends AbstractLogin {
 	 */
 	public static function isUserLoggedIn(){
 		$b = Session::userIsLoggedIn();
+		/*
 		if($b && utilizzo provider esterno){			
 		// L'autenticazione Panique è basta sulle Sessioni è quindi stateful mentre quella di google e Facebook è stateless.
 		// Per aumentare la sicurezza posso verificare se il token con cui è stato effettuato il login è scaduto		
@@ -456,6 +457,7 @@ class Login extends AbstractLogin {
 				}
 			}
 		}
+		*/
 		return $b;
 	}
 

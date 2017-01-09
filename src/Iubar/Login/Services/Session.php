@@ -59,13 +59,13 @@ class Session {
         	// You should also disable PHP’s session cache limiter so that PHP does not send conflicting cache expiration headers with the HTTP response
         	session_cache_limiter(false); // vedi http://docs.slimframework.com/sessions/native/
             session_start();
-            self::getLogger()->debug("Session start: " . session_name() . " id: " . session_id());
+            AbstractLogin::getLogger()->debug("Session start: " . session_name() . " id: " . session_id());
         }else{
-        	self::getLogger()->debug("Session already started: " . session_name() . " status: " . session_status() . " id: " . session_id());
+        	AbstractLogin::getLogger()->debug("Session already started: " . session_name() . " status: " . session_status() . " id: " . session_id());
         }
     }
     
-	protected function getLogger(){
+	protected static function getLogger(){
 		return AbstractLogin::getAppInstance();
 	}
 	
@@ -83,7 +83,7 @@ class Session {
     	
     	if(session_status() === PHP_SESSION_ACTIVE){
     		session_regenerate_id(true); 
-    		self::getLogger()->debug("Session id was regenerated: " . session_name() . " id: " . session_id());
+    		AbstractLogin::getLogger()->debug("Session id was regenerated: " . session_name() . " id: " . session_id());
     	}else{
     		die("regenerateId(): error, status is " . session_status());
     	}
@@ -164,7 +164,7 @@ class Session {
     		
 	//if (session_id()) {
     if(session_status() === PHP_SESSION_ACTIVE){	
-		self::getLogger()->debug("Destroying session: " . session_name() . " id: " . session_id());
+		AbstractLogin::getLogger()->debug("Destroying session: " . session_name() . " id: " . session_id());
 		try {
 	    	session_destroy();
 		}catch (\Exception $e){
@@ -172,7 +172,7 @@ class Session {
 			throw new \Exception($msg);
 		}
 	}else{
-		self::getLogger()->debug("No session to destroy");
+		AbstractLogin::getLogger()->debug("No session to destroy");
 	}
     }
 
@@ -221,8 +221,8 @@ class Session {
 	        $session_id = session_id();
 	        $userName   = Session::getDecoded(Session::SESSION_USER_NAME);
 	
-	        // self::getLogger()->debug("\$session_id : " . $session_id);
-	        // self::getLogger()->debug("\$userName : " . $userName);
+	        // AbstractLogin::getLogger()->debug("\$session_id : " . $session_id);
+	        // AbstractLogin::getLogger()->debug("\$userName : " . $userName);
 	        if(isset($userName) && isset($session_id)){
 	        	$userSessionId = null;
 	        	$dql =  "SELECT u FROM " . UserModel::TABLE_NAME . " u WHERE u.username = '" . $userName . "'";
@@ -235,13 +235,13 @@ class Session {
 				//if(!empty($result)){ // Questo statement è un bug nel codice originale di PANIQUE (lasciare qui il commento)
 	            	$userSessionId =  $user->getSessionid();
 				}
-				// self::getLogger()->debug("\$userSessionId : " . $userSessionId);
+				// AbstractLogin::getLogger()->debug("\$userSessionId : " . $userSessionId);
 				if($userSessionId && $session_id !== $userSessionId){
 	            	$b = true;
 				}
 	        }
 		}
-        // self::getLogger()->debug("isConcurrentSessionExists: " . $b);
+        // AbstractLogin::getLogger()->debug("isConcurrentSessionExists: " . $b);
         return $b;
     }
 

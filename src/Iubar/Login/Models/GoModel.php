@@ -70,7 +70,7 @@ class GoModel extends AbstractLogin implements IExternalModel {
 			GoModel::$go_client->setLogger(self::getLogger());
 			
 			// $client->setDeveloperKey('INSERT HERE');
-						
+			
 			GoModel::$go_client->setAuthConfig(self::$client_secrets_file);
 			// or...
 			// putenv('GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json');
