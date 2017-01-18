@@ -14,11 +14,13 @@
     "require": {
 		"google/apiclient" : "2.1.0",
 		"google/recaptcha": "~1.1",
-		"facebook/php-graph-sdk" : "^5.4",
+		"facebook/graph-sdk" : "^5.4",
 		"swiftmailer/swiftmailer" : "*",
 		"robloach/component-installer": "*",
 		"iubar/iubar-php-common": "dev-master@dev",
-		"iubar/iubar-slim-core": "dev-master@dev"
+		"iubar/iubar-slim-core": "dev-master@dev",
+		"doctrine/orm": "2.4.2",
+		"digitalnature/php-ref" : "*"
     },
 	"extra": {
         "component": {
@@ -41,6 +43,7 @@
     "autoload": {
         "psr-4": {
             "Iubar\\Login\\": "src/Iubar/Login/"
+            
         }
     }
 }

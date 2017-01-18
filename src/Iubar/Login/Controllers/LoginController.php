@@ -30,6 +30,7 @@ class LoginController extends LoginAbstractController {
 			$this->logger->debug("Already logged-in, redirecting...");			 
 			$this->redirectAfterSuccessfullyLogin();
 		}else{
+		    $this->logger->debug("renderLogin()...");
 			$this->renderLogin();
 		}
 	}

@@ -27,7 +27,7 @@ class Text {
 		// load config file (this is only done once per application lifecycle)
 		if (!self::$texts) {
 			$file = __DIR__ . '/translations/it.php';
-			if(!is_readable($file)){
+			if(is_readable($file)){
 				self::$texts = require($file);						
 			}else{						
 				throw new \RuntimeException('Can not load the translation file: ' . $file);		 

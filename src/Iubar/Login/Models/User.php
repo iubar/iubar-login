@@ -167,7 +167,7 @@ class User extends AbstractLogin {
     	return $user_profile;
     }
     
-    public static function getUserAvatarLink(Application\Models\User $user){
+    public static function getUserAvatarLink(\Application\Models\User $user){
     	$user_avatar_link = null;
     	if (self::config('auth.gravatar.enabled')) {
     		$user_avatar_link = AvatarModel::getGravatarLinkByEmail($user->getEmail());
@@ -177,7 +177,7 @@ class User extends AbstractLogin {
     	return $user_avatar_link;
     }
     
-	public static function save(Application\Models\Userexternal $user){
+	public static function save(\Application\Models\User $user){
 		if ($user){
 			$em = DbResource::getEntityManager();
 			$em->persist($user);
@@ -334,7 +334,7 @@ class User extends AbstractLogin {
     	return false;
     }
     
-    public static function isExternalAccount(Application\Models\User $user){
+    public static function isExternalAccount(\Application\Models\User $user){
     	$b = false;
 		if($user){
 			$provider_type = $user->getProvidertype();

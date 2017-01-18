@@ -374,7 +374,7 @@ class Login extends AbstractLogin {
 
 		$user = UserModel::getByUsername($user_name);
 		$user->setLastlogin(new \DateTime());
-		$user->setLastIp(self::getRequestIp());		
+//		$user->setLastIp(self::getRequestIp());		
 		$em = DbResource::getEntityManager();		 
 		$em->persist($user);
 		$em->flush();
@@ -442,6 +442,13 @@ class Login extends AbstractLogin {
 	 */
 	public static function isUserLoggedIn(){
 		$b = Session::userIsLoggedIn();
+		
+		if($b){
+		    self::getLogger()->debug("user is logged in");
+		}else{
+		    self::getLogger()->debug("user is not logged in");
+		}
+		
 		/*
 		if($b && utilizzo provider esterno){			
 		// L'autenticazione Panique è basta sulle Sessioni è quindi stateful mentre quella di google e Facebook è stateless.

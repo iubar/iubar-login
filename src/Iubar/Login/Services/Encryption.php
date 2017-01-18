@@ -2,6 +2,8 @@
 
 namespace Iubar\Login\Services;
 
+use Iubar\Login\Models\AbstractLogin;
+
 /**
  * Encryption and Decryption Class
  *
@@ -57,7 +59,7 @@ class Encryption
         $iv = openssl_random_pseudo_bytes($iv_size);
 
         // generate key for authentication using ENCRYPTION_KEY & HMAC_SALT
-        $key = mb_substr(hash(self::HASH_FUNCTION, Config::get('auth.encryption.key') . Config::get('auth.hmac.salt')), 0, 32, '8bit');
+        $key = mb_substr(hash(self::HASH_FUNCTION, AbstractLogin::config('auth.encryption.key') . AbstractLogin::config('auth.hmac.salt')), 0, 32, '8bit');
 
         // append initialization vector
         $encrypted_string = openssl_encrypt($plain, self::CIPHER, $key, OPENSSL_RAW_DATA, $iv);

@@ -2,7 +2,7 @@
 
 namespace Iubar\Login\Services;
 
-use Iubar\Login\Services\User;
+use Iubar\Login\Models\User;
 
 class ApiKey {
 	

@@ -96,19 +96,5 @@ class RoboFile extends \Robo\Tasks {
         $cmd = "mwb2sql.bat $mwb_file $output_file";        
         $this->taskExec($cmd)->dir(__DIR__ )->run();
     }
-    
-    public function checkSystemPath(){
-        // TODO: add C:\Program Files (x86)\Vagrant
-        $path_str = getenv('PATH'); 
-        $this->say('PATH: ' . $path_str); 
-        $path_array = explode(';', $path_str);
-        foreach ($path_array as $path){
-            $this->say('checking... ' . $path);
-            if(!is_dir($path)){
-                $error = 'ERROR: ' . $path;
-                $this->say($error);
-            }
-        }
-        
-    }
+
 }

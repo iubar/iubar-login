@@ -12,7 +12,8 @@ use Iubar\Login\Core\EmailSender;
 use Iubar\Login\Services\ApiKey;
 use Iubar\Login\Models\AbstractLogin;
 use Iubar\Login\Models\UserRole;
-use \ReCaptcha\ReCaptcha;
+use ReCaptcha\ReCaptcha;
+use Iubar\Login\Interfaces\IRegistration;
 
 /**
  * Class RegistrationModel
@@ -21,6 +22,20 @@ use \ReCaptcha\ReCaptcha;
  */
 class Registration extends AbstractLogin {
 	
+   /**
+    * 
+    * usare: Registration::setRegregistrationService(new RegistrationService());
+    * dove RegistrationService implements IRegistration
+    */
+    private static $registration_service = null; // implements IRegistration
+   
+    public static function setRegistrationService(IRegistration $registration_service){
+        self::$registration_service = $registration_service;
+    }
+    public static function getRegistrationService(){
+        return self::$registration_service;
+    }
+    
 	/**
 	 * Handles the entire registration process for DEFAULT users (not for people who register with
 	 * 3rd party services, like facebook) and creates a new user in the database if everything is fine
@@ -107,9 +122,13 @@ class Registration extends AbstractLogin {
 			return false;
 
 		}else{
-			if (self::sendWelcomeEmail($user_name, $user_email)){
-				return true;
-			}
+		    if (self::config('auth.email.welcome.enabled')){
+                if (self::sendWelcomeEmail($user_name, $user_email)){
+				    return true;
+                }
+		    } else {
+		        return true;
+		    }
 			self::getLogger()->debug("ERROR: sending welcome email to " . $user_email . " failed");
 			Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_WELCOME_MAIL_SENDING_FAILED'));
 			return false;
@@ -253,8 +272,7 @@ class Registration extends AbstractLogin {
 	 */
 	private static function writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_activation_hash, $provider_type){
 
-		$user = new User();
-		$user->setIdpersonafisica($pf);
+		$user = new \Application\Models\User();
 		$user->setUsername($user_name);
 		$user->setEmail($user_email);
 		$now = new \DateTime();
@@ -278,6 +296,9 @@ class Registration extends AbstractLogin {
 
 		User::save($user);
 
+		if(self::$registration_service){
+		    self::$registration_service->writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_activation_hash, $provider_type);
+		}		
 		return true;
 
 	}

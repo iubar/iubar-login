@@ -12,7 +12,7 @@ use Iubar\Login\Models\External;
 use Iubar\Login\Models\User as UserModel;
 use Iubar\Login\Models\Login;
 use Iubar\Login\Models\AbstractLogin;
-use Iubar\Login\Models\IExternalModel;
+use Iubar\Login\Interfaces\IExternalModel;
 
 // Messaggio per commit
 // https://github.com/google/google-api-php-client/blob/a4cd92fbb56f8e80503765cd582a319ec9c6855b/UPGRADING.md
@@ -56,7 +56,7 @@ class GoModel extends AbstractLogin implements IExternalModel {
 	// https://tools.ietf.org/html/rfc6750
 	
 	const TABLE_NAME = 'Application\Models\Userexternal';
-	private static $client_secrets_file =  "config/service-account.json"; // JSON can be generated in the Credentials section of Google Developer Console.
+	private static $client_secrets_file =  "../config/google-client-secret.json"; // JSON can be generated in the Credentials section of Google Developer Console.
 	private static $go_client = null;
 	
 	public static function getGoClient(){
@@ -73,7 +73,7 @@ class GoModel extends AbstractLogin implements IExternalModel {
 			
 			GoModel::$go_client->setAuthConfig(self::$client_secrets_file);
 			// or...
-			// putenv('GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json');
+			// putenv('GOOGLE_APPLICATION_CREDENTIALS=/path/to/google-client-secret.json');
 			// GoModel::$go_client->useApplicationDefaultCredentials();
 			//
 			
@@ -107,7 +107,7 @@ class GoModel extends AbstractLogin implements IExternalModel {
 		$expire_time = $accessToken['created'] + $accessToken['expires_in'];	
 		// Using a UNIX timestamp.  Notice the result is in the UTC time zone.
 		$expire_date = new \DateTime('@' . $expire_time);
-		$expire_str = $expire_date->format('Y-m-d H:i:s')
+		$expire_str = $expire_date->format('Y-m-d H:i:s');
 		External::writeAccessTokenToDb($email, $accessToken, $refreshToken, $scope, $expire_str, UserModel::PROVIDER_TYPE_GO);		
 	}
 	
@@ -341,6 +341,8 @@ class GoModel extends AbstractLogin implements IExternalModel {
 	*/
 	public static function loginFromJs(){
 
+	    self::getLogger()->debug("loginFromJs");
+	    
 		$login_successful = false;
 		$client = GoModel::getGoClient();
 	
@@ -354,8 +356,9 @@ class GoModel extends AbstractLogin implements IExternalModel {
 		$id_token = null;
 		if(isset($_REQUEST['id_token'])){	
 			$id_token = $_REQUEST['id_token'];
-					if($id_token){
-			Session::set(Session::GOOGLE_JWT_TOKEN, $id_token);
+			if($id_token){
+			 Session::set(Session::GOOGLE_JWT_TOKEN, $id_token);
+		  }
 		}
 		
 		if(Session::getDecoded(Session::GOOGLE_JWT_TOKEN)){
@@ -366,6 +369,8 @@ class GoModel extends AbstractLogin implements IExternalModel {
 			self::getLogger()->debug($msg2);
 			$id_token = $id_token2;
 		}
+		
+		self::getLogger()->debug("loginFromJs ...");
 		
 		if($id_token){
 
@@ -532,9 +537,8 @@ class GoModel extends AbstractLogin implements IExternalModel {
 				self::storeAccessToken($accessToken, $refreshToken, $user_info->email);
 				}
 			  }
-			}				
-		}
-		
+						
+			
 		if (!$client->getAccessToken() || $client->isAccessTokenExpired()) {
 			unset($_SESSION[Session::GOOGLE_ACCESS_TOKEN]);
 			unset($_SESSION[Session::GOOGLE_REFRESH_TOKEN]);

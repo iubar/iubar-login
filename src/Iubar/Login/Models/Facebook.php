@@ -12,9 +12,9 @@ use Iubar\Login\Models\External;
 use Iubar\Login\Models\User as UserModel;
 use Iubar\Login\Models\Login;
 use Iubar\Login\Models\AbstractLogin;
-use Iubar\Login\Models\IExternalModel;
+use Iubar\Login\Interfaces\IExternalModel;
 
-use Facebook\Facebook;
+use Facebook\Facebook as FacebookSdk;
 use Facebook\FacebookResponse;
 use Facebook\Exceptions\FacebookResponseException;
 use Facebook\Exceptions\FacebookSDKException;
@@ -28,18 +28,15 @@ class Facebook extends AbstractLogin implements IExternalModel {
 	// https://www.facebook.com/settings?tab=applications
 	
 	const FORCE_TOKEN_REFRESH_AFTER_LOGIN = false;
-	private static $apiVer = "v2.8";
-	private static $appId = "711000465694649"; // FIXME: hard-coded value
-	private static $appSecret = "d1d8783a2fc0053f7618fa2a59de8d99"; // FIXME: security flaw in
 	
 	private static $fb = null;
 	
 	private static function getFb(){
-		if(Facebook::$fb == null){
-			Facebook::$fb = new Facebook([
-					'app_id' => Facebook::$appId,
-					'app_secret' => Facebook::$appSecret,
-					'default_graph_version' => Facebook::$apiVer
+		if(self::$fb == null){
+			self::$fb = new FacebookSdk([
+					'app_id' => self::config('auth.facebook.appid'),
+					'app_secret' => self::config('auth.facebook.appsecret'),
+					'default_graph_version' => self::config('auth.facebook.apiver')
 					// Once you have an access token stored in a PHP session or in your database, 
 					// you can set it as the default fallback access token in the constructor 
 					// of the Facebook\Facebook() service class. 
@@ -48,14 +45,14 @@ class Facebook extends AbstractLogin implements IExternalModel {
 					// 'default_access_token' => '{default-access-token}'
 			]);
 		}
-		return Facebook::$fb;
+		return self::$fb;
 	}
 
 	// Il seguente metodo è utilizzato solo se
 	// si è scelto di non utilizzare l'SDK JS
 	// ovvero solo per il flow server-side	
 	public static function getLoginUrl(){
-		$fb = Facebook::getFb();
+		$fb = self::getFb();
 		$helper = $fb->getRedirectLoginHelper();
 		$permissions = ['public_profile, email']; // optional
 // 		The FacebookRedirectLoginHelper makes use of sessions
@@ -70,7 +67,7 @@ class Facebook extends AbstractLogin implements IExternalModel {
 	// ovvero solo per il flow server-side
 	public static function getAccessTokenAfterLogin(){
 		$accessToken = null;
-		$fb = Facebook::getFb();
+		$fb = self::getFb();
 		$helper = $fb->getRedirectLoginHelper();
 		try {
 			$accessToken = $helper->getAccessToken();
@@ -136,7 +133,7 @@ class Facebook extends AbstractLogin implements IExternalModel {
 		// If you're already using the Facebook SDK for JavaScript to authenticate users, 
 		// you can obtain the access token with PHP by using the FacebookJavaScriptHelper.
 		$accessToken = null;
-		$fb = Facebook::getFb();
+		$fb = self::getFb();
 		
 		// Grabbing User Data From A Signed Request
 		// JavaScriptHelper is used to obtain an access token 
@@ -209,7 +206,7 @@ class Facebook extends AbstractLogin implements IExternalModel {
 		// Attenzione:  OAuth 2.0 Spec stated that
 		// "authorization codes must be short lived and SINGLE use"
 	
-		$fb = Facebook::getFb();
+		$fb = self::getFb();
 		// Using the Graph API and the Facebook SDK
 		try {
 				
@@ -268,7 +265,7 @@ class Facebook extends AbstractLogin implements IExternalModel {
 
 	private static function getExtendAccessToken($accessToken){
 		$longLivedAccessToken = null;
-		$fb = Facebook::getFb();
+		$fb = self::getFb();
 		// When a user first logs into your app, the access token your app receives will be a short-lived access token that lasts about 2 hours. It's generally a good idea to exchange the short-lived access token for a long-lived access token that lasts about 60 days.
 		
 		// Extending the access token
@@ -365,7 +362,8 @@ class Facebook extends AbstractLogin implements IExternalModel {
 			$scope = null; 			// TODO:
 			$expire_date = null; 	// TODO:
 			
-			External::writeAccessTokenToDb($fb_email, $accessToken, $scope, $expire_date, UserModel::PROVIDER_TYPE_FB);
+			External::writeAccessTokenToDb($fb_email, $accessToken, null, $scope, $expire_date, UserModel::PROVIDER_TYPE_FB);
+						
 			self::getFb()->setDefaultAccessToken($accessToken);
 		
 			$fb_id =  $fb_graph_user->getId();
@@ -529,7 +527,7 @@ class Facebook extends AbstractLogin implements IExternalModel {
 	}
 	
 	private static function validateToken($accessToken, $userId=null){
-		$fb = Facebook::getFb();
+		$fb = self::getFb();
 		// The OAuth 2.0 client handler helps us manage access tokens
 		$oAuth2Client = $fb->getOAuth2Client();		
 		// Get the access token metadata
@@ -537,7 +535,7 @@ class Facebook extends AbstractLogin implements IExternalModel {
 		// echo '<h3>Metadata</h3>';
 		self::getLogger()->debug('\$tokenMetadata: ' . @rt($tokenMetadata));
 		try{
-			$tokenMetadata->validateAppId(Facebook::$appId);  // Nota: il metodo non ritorna nulla, solo un'eccezione se la validazione fallisce
+			$tokenMetadata->validateAppId(self::config('auth.facebook.appid'));  // Nota: il metodo non ritorna nulla, solo un'eccezione se la validazione fallisce
 			if($userId){
 				$tokenMetadata->validateUserId($userId); // Nota: il metodo non ritorna nulla, solo un'eccezione se la validazione fallisce
 			}

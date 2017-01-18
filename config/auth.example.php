@@ -79,6 +79,12 @@ return array (
     'auth.captcha.key' => 'key',
     'auth.captcha.secret' => 'secret',
     
+    // Facebook
+    'auth.facebook.appid' => '247034472002600',
+    'auth.facebook.appsecret' => '',
+    'auth.facebook.apiver' => 'v2.8',
+    
     'auth.email.verification.enabled' => false,
+    'auth.email.welcome.enabled' => false
     
 );
