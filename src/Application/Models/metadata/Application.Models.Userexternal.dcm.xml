@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="Application\Models\Userexternal" table="UserExternal">
+    <id name="id" type="string" column="Id" length="255">
+      <generator strategy="IDENTITY"/>
+    </id>
+    <field name="display" type="string" column="Display" length="255" nullable="true"/>
+    <field name="firstname" type="string" column="FirstName" length="64" nullable="true"/>
+    <field name="middlename" type="string" column="MiddleName" length="64" nullable="true"/>
+    <field name="email" type="string" column="Email" length="64" nullable="true"/>
+    <field name="lastname" type="string" column="LastName" length="64" nullable="true"/>
+    <field name="pictureurl" type="string" column="PictureUrl" length="255" nullable="true"/>
+    <field name="creationtime" type="datetime" column="CreationTime" nullable="true"/>
+    <field name="creationip" type="string" column="CreationIp" length="39" nullable="true"/>
+    <field name="accesstoken" type="string" column="AccessToken" length="255" nullable="true"/>
+    <field name="accesstokenscope" type="string" column="AccessTokenScope" length="255" nullable="true"/>
+    <field name="accesstokenexpireat" type="datetime" column="AccessTokenExpireAt" nullable="true"/>
+    <field name="providertype" type="string" column="ProviderType" length="10" nullable="true"/>
+  </entity>
+</doctrine-mapping>
