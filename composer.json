@@ -1,8 +1,6 @@
 {
     "name": "iubar/iubar-login",
-    "type": "library",
-	"minimum-stability" : "dev",
-    "prefer-stable" : true,    
+    "type": "library",   
     "repositories": [
 		{
 			"type": "git",
