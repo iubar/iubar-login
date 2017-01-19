@@ -68,13 +68,17 @@ class GoogleController extends LoginAbstractController {
 		$this->logger->debug(get_class($this) . '->getLoginCallback()');
 		$login_successful = false;
 		if(isset($_REQUEST['code'])){
+		    $this->logger->debug('-->1');
 			$login_successful = GoModel::loginServerSide();
-		} else if (isset($_SESSION[Session::GOOGLE_ACCESS_TOKEN])) {
-			$login_successful = GoModel::loginServerSide();	
+ 		} else if (isset($_SESSION[Session::GOOGLE_ACCESS_TOKEN])) { // used for some TEST in the server side login flow
+ 		    $this->logger->debug('-->2');
+ 			$login_successful = GoModel::loginServerSide();	
 		}else if (isset($_REQUEST['bearer_token'])){
+		    $this->logger->debug('-->3');
 			$login_successful = GoModel::loginFromJs();
-		}else if (isset($_SESSION[Session::GOOGLE_JWT_TOKEN])){
-			$login_successful = GoModel::loginFromJs();
+		}else if (isset($_SESSION[Session::GOOGLE_JWT_TOKEN])){ // used for some TEST in the client side login flow
+			$this->logger->debug('-->4');
+			$login_successful = GoModel::loginFromJs();			
 		}else{
 			$this->logger->debug(get_class($this) . '->getLoginCallback(): situazione imprevista');
 		}

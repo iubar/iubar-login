@@ -2,9 +2,12 @@
 {% set hide_chat = true %}
 {% block head %}
 	{{ parent() }}
-	<script type="text/javascript" src="{{ baseUrl(false) }}/public/js/controllers/login.js"></script>
-	{% include 'app/login/external/fb-header.twig' %}
-	{% include 'app/login/external/go-header.twig' %}
+	<script src="https://apis.google.com/js/api:client.js"></script>
+	
+	<script type="text/javascript" src="{{ baseUrl(false) }}/js/controllers/login.js"></script>
+	<script type="text/javascript" src="{{ baseUrl(false) }}/js/social-config.example.js"></script>
+	<script type="text/javascript" src="{{ baseUrl(false) }}/js/facebook.js"></script>
+	<script type="text/javascript" src="{{ baseUrl(false) }}/js/google.js"></script>
 {% endblock %}
 {% set title = 'Login' %}
 {% block content %}
@@ -14,7 +17,7 @@
 		<div class="login-box" style="border: 1px solid #003687">
 		 	<div class="login-box-body">
 				<div class="login-logo">
-		    		<a href="{{ baseUrl(false) }}"><b>Fattura</b>Tutto</a>
+		    		<a href="{{ baseUrl(false) }}"><b>{{ config['app.name'] }}</b></a>
 		  		</div><!-- /login-logo -->
 		  		<div data-ng-show="login_email == 0">
 			 		<p class="login-box-msg">Accedi con</p>
@@ -26,10 +29,10 @@
 			 			<button class="btn btn-lg btn-block btn-flat btn-social btn-warning" data-ng-click="login_email = 1" style="margin-bottom: 10px;">
 			      			<i class="fa fa-at"></i> Email
 			      		</button>
-			 			<a href="#" class="btn btn-lg btn-block btn-flat btn-social btn-facebook" onclick="fb_login();ga('send', 'event', 'click', 'login-facebook', 'Login facebook click');" style="margin-bottom: 10px;">
+			 			<a href="#" class="btn btn-lg btn-block btn-flat btn-social btn-facebook" onclick="fb_login();" style="margin-bottom: 10px;">
 			      			<i class="fa fa-facebook"></i> Facebook
 			      		</a>
-			      		<a id="customGoogleBtn" href="#" class="btn btn-lg btn-block btn-flat btn-social btn-google" onclick="ga('send', 'event', 'click', 'login-google', 'Login google click');" style="margin-bottom: 10px;">
+			      		<a id="customGoogleBtn" href="#" class="btn btn-lg btn-block btn-flat btn-social btn-google" style="margin-bottom: 10px;">
 			      			<i class="fa fa-google-plus"></i> Google
 			      		</a>
 			 		</div>
@@ -47,7 +50,7 @@
 		      		</div>
 		      		<div class="form-group">
 		        		<input type="password" class="form-control" placeholder="Password" name="user_password" required>
-		        		<p class="text-right" style="font-size: 11px;"><a href="{{ baseUrl(false) }}/login/password-dimenticata">Ho dimenticato la password</a></p>
+{# 		        		<p class="text-right" style="font-size: 11px;"><a href="{{ baseUrl(false) }}/login/password-dimenticata">Ho dimenticato la password</a></p>#}
 		      		</div>
 		      		<div class="form-group">
 		        		<label>
@@ -56,13 +59,13 @@
 		            	</label>
 		      		</div>
 		      		<div class="text-center">
-		      			<button type="submit" class="btn btn-block btn-flat btn-success" onclick="ga('send', 'event', 'click', 'login-email', 'Login email click');">Accedi</button>
+		      			<button type="submit" class="btn btn-block btn-flat btn-success">Accedi</button>
 		    		</div>
 		    	</form>
 		    	<div style="margin-top: 1px">
-			    	{% include 'app/login/external/fb_login.twig' %}
-					{% include 'app/login/external/go_login.twig' %}
-					{% include 'app/login/feedback_messages.twig' %} 
+			    	{% include 'app/login/external/fb-login.twig' %}
+					{% include 'app/login/external/go-login.twig' %}
+					{% include 'app/login/feedback-messages.twig' %} 
 				</div>		    	
 		    	<div class="text-center">
 					<hr style="border: 1px solid #999;">
@@ -75,7 +78,7 @@
 		<div class="register-box" style="border: 1px solid #003687">
 		  	<div class="register-box-body">
 		  		<div class="register-logo">
-		    		<a href="{{ baseUrl(false) }}"><b>Fattura</b>Tutto</a>
+		    		<a href="{{ baseUrl(false) }}"><b>{{ config['app.name'] }}</b></a>
 		  		</div><!-- /register-logo -->
 		    	<p class="register-box-msg">Registrazione</p>
 		    	<form method="post" action="{{ baseUrl(false) }}/register">
@@ -91,13 +94,20 @@
 		      		<div class="form-group">
 		        		<input type="password" class="form-control" placeholder="Ripeti password" name="user_password_repeat" required autocomplete="off">
 		      		</div>
-		      		<div class="text-center"> 
-		      			<div class="g-recaptcha" data-callback="imNotARobot" data-sitekey="{{ captcha_key }}"></div>
-		      		</div>    
+		      		{% if config['auth.captcha.enabled'] %}
+    		      		<div class="text-center"> 
+    		      			<div class="g-recaptcha" data-callback="imNotARobot" data-sitekey="{{ config['auth.captcha.key'] }}"></div>
+    		      		</div>
+		      		{% endif %}
 		        	<div class="text-center">      		
-		      			<button type="submit" class="btn btn-block btn-flat btn-success" onclick="ga('send', 'event', 'click', 'register-email', 'Register email click');">Registrati</button>
+		      			<button type="submit" class="btn btn-block btn-flat btn-success">Registrati</button>
 		    		</div>
 		    	</form>
+		    	<div style="margin-top: 1px">
+			    	{% include 'app/login/external/fb-login.twig' %}
+					{% include 'app/login/external/go-login.twig' %}
+					{% include 'app/login/feedback-messages.twig' %} 
+				</div>	
 		    	<div class="text-center">
 		    		<hr style="border: 1px solid #999;">
 		    		<a href="#" data-ng-click="tipo = 1">Sono gi&agrave; registrato</a>

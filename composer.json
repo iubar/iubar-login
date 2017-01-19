@@ -5,45 +5,22 @@
 		{
 			"type": "git",
 			"url": "https://github.com/iubar/iubar-slim-core.git"
-		},
-		{
-			"type": "git",
-			"url": "https://github.com/iubar/iubar-php-common.git"
-		}		
+		}	
 	],
     "require": {
+    	"php": ">=5.6.0",
 		"google/apiclient" : "2.1.0",
 		"google/recaptcha": "~1.1",
+		"guzzlehttp/guzzle": "5.3.1",
 		"facebook/graph-sdk" : "^5.4",
 		"swiftmailer/swiftmailer" : "*",
-		"robloach/component-installer": "*",
-		"iubar/iubar-php-common": "dev-master@dev",
 		"iubar/iubar-slim-core": "dev-master@dev",
-		"doctrine/orm": "2.4.2",
+		"doctrine/orm": "2.4.2",		
 		"digitalnature/php-ref" : "*"
-    },
-	"extra": {
-        "component": {
-            "scripts": [
-                "js/google.js",
-                "js/facebook.js"
-            ],
-            "styles": [
-                
-            ],
-            "files": [
-
-            ]
-        }
-    },
-	"config": {
-        "component-dir": "",
-        "component-requirejs": false
-    },    
+    }, 
     "autoload": {
         "psr-4": {
-            "Iubar\\Login\\": "src/Iubar/Login/"
-            
+            "Iubar\\Login\\": "src/Iubar/Login/"            
         }
     }
 }

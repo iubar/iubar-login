@@ -14,6 +14,8 @@ class RoboFile extends \Robo\Tasks {
 	private $db_pass = 'phpapp';
 	private $db_name = 'login';
 
+	private $dest_root_path = __DIR__ . '/..';
+	
 	private function conn(){
 		// A note about MySQL server configuration
 		// You may edit the /etc/mysql/my.cnf file to configure the basic settings such as TCP/IP port, IP address binding, and other options. However, The MySQL database server configuration file on the Ubuntu 16.04 LTS is located at /etc/mysql/mysql.conf.d/mysqld.cnf and one can edit using a text editor such as vi or nano:
@@ -96,5 +98,85 @@ class RoboFile extends \Robo\Tasks {
         $cmd = "mwb2sql.bat $mwb_file $output_file";        
         $this->taskExec($cmd)->dir(__DIR__ )->run();
     }
-
+    
+    public function assets() {
+         
+        $templates_from = __DIR__ . '/../../iubar-login/templates';
+        $templates_to = $this->dest_root_path . '/templates';
+    
+        $css_from = __DIR__ . '/../../iubar-login/css';
+        $css_to = $this->dest_root_path . '/public/css';
+    
+        $js_from = __DIR__ . '/../../iubar-login/js';
+        $js_to = $this->dest_root_path . '/public/js';
+    
+        $img_from = __DIR__ . '/../../iubar-login/img';
+        $img_to = $this->dest_root_path . '/public/img';
+    
+        $config_from = __DIR__ . '/../../iubar-login/config';
+        $config_to = $this->dest_root_path . '/config';
+    
+        if( !is_dir($templates_from) || !is_dir($templates_to) ){
+            throw new RuntimeException("Wrong templates path or missing folder");
+        }
+        if( !is_dir($css_from) || !is_dir($css_to) ){
+            throw new RuntimeException("Wrong css path or missing folder");
+        }
+        if( !is_dir($js_from) || !is_dir($js_to) ){
+            throw new RuntimeException("Wrong js path or missing folder");
+        }
+        if( !is_dir($img_from) || !is_dir($img_to) ){
+            throw new RuntimeException("Wrong img path or missing folder");
+        }
+        if( !is_dir($config_from) || !is_dir($config_to) ){
+            throw new RuntimeException("Wrong config path or missing folder");
+        }
+    
+        $this->taskCopyDir([$templates_from => $templates_to])->run();
+        $this->taskCopyDir([$css_from => $css_to])->run();
+        $this->taskCopyDir([$js_from =>  $js_to])->run();
+        $this->taskCopyDir([$img_from => $img_to])->run();
+        $this->taskCopyDir([$config_from => $config_to])->run();
+    
+        // Altri file da copiare
+    
+        $files = array('/../../iubar-login/.bowerrc', '/../../iubar-login/bower.json');
+        foreach($files as $file){
+            $path_parts = pathinfo($file);
+            $basename =  $path_parts['basename'];
+            $newfile = $this->dest_root_path . '/' . $basename;
+            if (!copy($file, $newfile)) {
+                throw new RuntimeException("Failed to copy $file");
+            }
+        }
+    
+        $this->taskMinify($css_to)->run();
+    }
+    
+    /**
+     * Se non viene specificato il parametro --config.directory
+     * verrà utilizzata la configurazione dichiarata nel file .bowercc
+     */
+    public function bower_update(){
+        // prefer dist with custom path
+        $this->taskBowerUpdate(__DIR__ . '/..')
+        ->option('--config.directory', $this->dest_root_path . '/public/bower_components')
+        // ->noDev()
+        ->run();
+    }
+    
+    /**
+     * Se non viene specificato il parametro --config.directory
+     * verrà utilizzata la configurazione dichiarata nel file .bowercc
+     */
+    public function bower_install(){
+        // simple execution
+        // prefer dist with custom path
+        $this->taskBowerInstall(__DIR__ . '/..')
+        ->option('--config.directory', $this->dest_root_path . '/public/bower_components')
+        // ->noDev()
+        ->run();
+    }
+    
+    
 }

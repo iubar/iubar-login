@@ -66,7 +66,9 @@ class GoModel extends AbstractLogin implements IExternalModel {
 		}
 		
 		if(GoModel::$go_client == null){
-			GoModel::$go_client = new \Google_Client();
+		    // $CLIENT_ID = "190362098327-35dp2uvme3i8tqnq2257nb7g6e7am9b6.apps.googleusercontent.com";
+			// GoModel::$go_client = new \Google_Client(['client_id' => $CLIENT_ID]);
+		    GoModel::$go_client = new \Google_Client();
 			GoModel::$go_client->setLogger(self::getLogger());
 			
 			// $client->setDeveloperKey('INSERT HERE');
@@ -115,20 +117,20 @@ class GoModel extends AbstractLogin implements IExternalModel {
 		$client = GoModel::getGoClient();
 					
 		////////////////// Google_Service_Oauth2			
-		$user_info = null;
-		$google_oauth2  = new \Google_Service_Oauth2($client);
-		if($google_oauth2){
-			echo "<div>User info</div>";
-			//$userinfo_v2_me = $google_oauth2->userinfo_v2_me->get();
-			$user_info = $google_oauth2->userinfo->get();
-			echo @rt($user_info); // html out format
+// 		$user_info = null;
+// 		$google_oauth2  = new \Google_Service_Oauth2($client);
+// 		if($google_oauth2){
+// 			echo "<div>User info</div>";
+// 			//$userinfo_v2_me = $google_oauth2->userinfo_v2_me->get();
+// 			$user_info = $google_oauth2->userinfo->get();
+// 			echo @rt($user_info); // html out format
 		
-			echo $user_info->name."<br>";
-			echo $user_info->id."<br>";
-			echo $user_info->email."<br>";
-			echo $user_info->link."<br>";
-			echo $user_info->picture."<br>";
-		}
+// 			echo $user_info->name."<br>";
+// 			echo $user_info->id."<br>";
+// 			echo $user_info->email."<br>";
+// 			echo $user_info->link."<br>";
+// 			echo $user_info->picture."<br>";
+// 		}
 
 		////////////////// Google_Service_Plus
 		$google_plus = new \Google_Service_Plus($client);
@@ -144,7 +146,7 @@ class GoModel extends AbstractLogin implements IExternalModel {
 		}
 		
 		// TODO: completare, ovvero effttuare registrazione / login dell'utente
-		die("TODO: ....");
+// 		die("TODO: ....");
 
 		/*
 		$userData = l'array deve essere costruito con i valori di $user_profile e $user_info
@@ -353,39 +355,46 @@ class GoModel extends AbstractLogin implements IExternalModel {
 		// Using the client side flow (ie Java Script) you can only receive a JWT token (not an access-token)						
 		// Vedi: https://developers.google.com/identity/sign-in/web/backend-auth
 		
-		$id_token = null;
-		if(isset($_REQUEST['id_token'])){	
-			$id_token = $_REQUEST['id_token'];
-			if($id_token){
-			 Session::set(Session::GOOGLE_JWT_TOKEN, $id_token);
-		  }
+		$bearer_token = null;
+		if(isset($_REQUEST['bearer_token'])){	
+			$bearer_token = $_REQUEST['bearer_token'];
+			$client->setAccessToken($bearer_token);
+			if($bearer_token){
+			     Session::set(Session::GOOGLE_JWT_TOKEN, $bearer_token);
+		      }
+		}else if(Session::GOOGLE_JWT_TOKEN){
+		    $bearer_token = Session::getDecoded(Session::GOOGLE_JWT_TOKEN);
+		}else{
+		    die("ERROR: missing token");
 		}
-		
-		if(Session::getDecoded(Session::GOOGLE_JWT_TOKEN)){
-			$id_token2 = Session::getDecoded(Session::GOOGLE_JWT_TOKEN);
-			$msg = "Bearer token in session: " . $id_token2;
-			$msg2 = "Bearer token from request: " . $id_token;
-			self::getLogger()->debug($msg);
-			self::getLogger()->debug($msg2);
-			$id_token = $id_token2;
-		}
-		
-		self::getLogger()->debug("loginFromJs ...");
-		
-		if($id_token){
-
+ 	        
+	        
+//  	        	 		echo "<div> id_token ";
+//  	                    echo @rt($bearer_token);	                    
+//  	        	 		echo "</div>";
+//  	        	 		die();
 			
-	// 		echo "<div> id_token ";
-	// 		@rt($id_token);
-	// 		echo "</div>";
-				
-			$token_array = json_decode($id_token, true);
-				
-			$scope = null;
+		if($bearer_token){
+ 
+		    self::getLogger()->debug('bearer_token: ' . $bearer_token);
+			$token_array = json_decode($bearer_token, true);
+			
+			
+ 			$scope = null;
 			if(isset($token_array["scope"])){
-				$scope = $token_array["scope"];
-			}
+			    // eg: scope == string(426) "https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email 
+ 				$scope = $token_array["scope"];
+ 			}
+ 			
+ 			self::getLogger()->debug('scope: ' . $scope);
+ 			
+ 			$id_token = null;
+ 			if(isset($token_array["id_token"])){
+ 			    $id_token = $token_array["id_token"];
+ 			} 			
 
+ 			self::getLogger()->debug('id_token: ' . $id_token);
+ 			
 			$has_expired=false;
 			
 			if(false){ // Il metodo verifyIdToken(), invocato successivamente, effettua già i controlli seguenti
@@ -422,7 +431,7 @@ class GoModel extends AbstractLogin implements IExternalModel {
 //	- If you want to restrict access to only members of your G Suite domain, verify that the ID token has an hd claim that matches your G Suite domain name.
 //	Rather than writing your own code to perform these verification steps, we strongly recommend using a Google API client library for your platform, or calling our tokeninfo validation endpoint.
 
-			$userData = $client->verifyIdToken($id_token); 	// Verifies the JWT signature, the aud claim, the iss claim, and the exp claim
+			$userData = $client->verifyIdToken(); 	// Verifies the JWT signature, the aud claim, the iss claim, and the exp claim
 															// Note: The library will automatically download and cache the certificate required for verification, and refresh it if it has expired.
 															
 			// Once you get these claims, you still need to check that the aud claim contains one
@@ -430,12 +439,13 @@ class GoModel extends AbstractLogin implements IExternalModel {
 			// If it does, then the token is both valid and intended for your client,
 			// and you can safely retrieve and use the user's unique Google ID from the sub claim.
 	
-			// 			echo "<div> TOKEN_DATA ";
-			// 			echo @rt($userData); // html out format
-			// 			echo "</div>";
-			
+//  			echo "<div> TOKEN_DATA ";
+//  			echo @rt($userData); // txt out format
+//  			echo "</div>";
+//  			die();
+ 			
 			if(empty($userData)){
-				throw new \UnexpectedValueException("\$userData is null or empty");
+				throw new \UnexpectedValueException("\$userData is null or empty, while \$id_token is $id_token");
 			}
 			
 			$go_user = self::getGoUserOrRegister($userData);
@@ -512,10 +522,12 @@ class GoModel extends AbstractLogin implements IExternalModel {
 			//   	int(3593)
 			//   	["created"]=>
 			//   	int(1445548590)
-			// 	}
+			// 	}			
 			echo "access token: <div>" . @rt($accessToken) . "</div>" . PHP_EOL;
+			$client->setAccessToken($accessToken);
 			$refreshToken = $client->getRefreshToken();
-			echo "refresh token: <div>" . @rt($refreshToken) . "</div>" . PHP_EOL;
+			echo "refresh token: <div>" . @rt($refreshToken) . "</div>" . PHP_EOL;			
+			$user_info = $client->verifyIdToken();
 			self::storeAccessToken($accessToken, $refreshToken, $user_info->email);
 			
 		}else if (isset($_SESSION[Session::GOOGLE_ACCESS_TOKEN])) { // extract token from session and configure client
@@ -534,6 +546,8 @@ class GoModel extends AbstractLogin implements IExternalModel {
 				$refreshToken2 = $client->getRefreshToken();
 				echo "refresh token: <div>" . @rt($refreshToken) . "</div>" . PHP_EOL;
 				echo "refresh token2: <div>" . @rt($refreshToken2) . "</div>" . PHP_EOL;
+				$client->setAccessToken($_SESSION[Session::GOOGLE_ACCESS_TOKEN]);
+				$user_info = $client->verifyIdToken();
 				self::storeAccessToken($accessToken, $refreshToken, $user_info->email);
 				}
 			  }

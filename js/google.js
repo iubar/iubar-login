@@ -6,6 +6,7 @@
    */  
    var global_option = 0;
   var startAuth = function(option) {
+	  console.log("startAuth()");
 	  global_option = option;
     gapi.load('auth2', initSigninV2);       
   };
@@ -80,6 +81,7 @@ if (isSignedIn != true) {
    * Handle sign-in failures.
    */
   var onFailure = function(error) {
+	  console.log("onFailure()");
       console.log(error);
     alert(JSON.stringify(error));
   };
@@ -104,9 +106,8 @@ if (isSignedIn != true) {
  		 var id_token = response.id_token;
 		 var access_token = response.access_token; // Questo token da ora in poi non ha alcun utilizzo pratico
 		 console.log('response: ' + JSON.stringify(response));
-		 console.log('id_token: ' + JSON.stringify(response));
-		 console.log('access_token: ' + JSON.stringify(response)); // TODO: verificarne il valore (mi aspetto null)
-		 var url = "login/google/callback?id_token=" + JSON.stringify(id_token); 
+		 console.log('id_token: ' + JSON.stringify(id_token));
+		 var url = "login/google/callback?bearer_token=" + JSON.stringify(response); 
 		 var redirect = getParameterByName('redirect');
 
 		 if (redirect != null){

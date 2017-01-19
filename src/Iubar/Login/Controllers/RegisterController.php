@@ -43,7 +43,19 @@ class RegisterController extends LoginAbstractController {
 	 * POST-request after form submit
 	 */
 	public function postRegister(){	
-        $registration_successful = $this->register();		
+	    // clean the input
+	    $user_email = strip_tags($this->app->request->post('user_email'));
+	    $user_name = null; // strip_tags($this->app->request->post('user_name'));
+	    if(!$user_name){ // Se non specificato, utilizzo l'indirizzo email come username
+	        $user_name = $user_email;
+	    }
+	    $user_email_repeat = NULL; // potrei usare strip_tags($this->app->request->post('user_email_repeat'));
+	    $user_password_new = $this->app->request->post('user_password_new');
+	    $user_password_repeat = $this->app->request->post('user_password_repeat');
+	    $captcha = $this->app->request->post('g-recaptcha-response');
+	    $redirect = ltrim(urldecode($this->app->request->post('redirect')));
+	    
+        $registration_successful = $this->register($user_name, $user_email, $user_email_repeat, $user_password_new, $user_password_repeat, $captcha);		
 		$redirect_url = null;
 		if ($registration_successful) {
 			$login_successful = LoginModel::login($user_name, $user_password_new, true, UserModel::PROVIDER_TYPE_DEFAULT);			
@@ -60,20 +72,8 @@ class RegisterController extends LoginAbstractController {
 		$this->redirect($redirect_url);
     }
     
-    protected function register(){
-        $this->logger->debug(get_class($this).'->postRegister()');
-        
-        // clean the input
-        $user_email = strip_tags($this->post('user_email'));
-        $user_name = null; // strip_tags($this->post('user_name'));
-        if(!$user_name){ // Se non specificato, utilizzo l'indirizzo email come username
-            $user_name = $user_email;
-        }
-        $user_email_repeat = NULL; // potrei usare strip_tags($this->post('user_email_repeat'));
-        $user_password_new = $this->post('user_password_new');
-        $user_password_repeat = $this->post('user_password_repeat');
-        $captcha = $this->post('g-recaptcha-response');
-        $redirect = ltrim(urldecode($this->post('redirect')));
+    protected function register($user_name, $user_email, $user_email_repeat, $user_password_new, $user_password_repeat, $captcha){
+        $this->logger->debug(get_class($this).'->register()');
         
         $registration_successful = RegistrationModel::registerNewUser(
             $user_name,

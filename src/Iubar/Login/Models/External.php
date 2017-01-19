@@ -15,12 +15,16 @@ class External extends AbstractLogin {
 
 	public static function writeAccessTokenToDb($email, $access_token, $refreshToken, $scope, $expire_date, $provider_type){
 		$dql = "UPDATE " . self::TABLE_NAME  . " u SET"
-			. " u.accesstoken = '" . $access_token . "',"
-			. " u.accesstokenscope = '" . $scope . "',"
-			. " u.accesstokenexpireat = '" . $expire_date . "'"					
-			. " u.refreshToken = '" . $refreshToken . "',"
+			. " u.accesstoken = '" . $access_token . "',";
+// 			. " u.refreshToken = '" . $refreshToken . "'," // NON ESISTE IL CAMPO NEL DB ?
+    if($expire_date){
+    $dql .= " u.accesstokenexpireat = '" . $expire_date . "',";
+		}
+			$dql .= " u.accesstokenscope = '" . $scope . "'"								
 			. " WHERE u.email= '" . $email . "'"
 			. " AND u.providertype = '" . $provider_type . "'";
+		
+	   
 			$numUpdated = DbResource::getEntityManager()->createQuery($dql)->execute();
 		return $numUpdated;
 	}
