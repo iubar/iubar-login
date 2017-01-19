@@ -297,7 +297,7 @@ class Registration extends AbstractLogin {
 		User::save($user);
 
 		if(self::$registration_service){
-		    self::$registration_service->writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_activation_hash, $provider_type);
+		    self::$registration_service->writeNewUserToDatabase($user);
 		}		
 		return true;
 
