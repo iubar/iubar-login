@@ -14,7 +14,7 @@
 		"guzzlehttp/guzzle": "5.3.1",
 		"facebook/graph-sdk" : "^5.4",
 		"swiftmailer/swiftmailer" : "*",
-		"iubar/iubar-slim-core": "dev-master@dev",
+		"iubar/iubar-slim-core": "*",
 		"doctrine/orm": "2.4.2",		
 		"digitalnature/php-ref" : "*"
     }, 
