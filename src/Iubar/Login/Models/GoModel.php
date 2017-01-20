@@ -69,7 +69,7 @@ class GoModel extends AbstractLogin implements IExternalModel {
 		    // $CLIENT_ID = "190362098327-35dp2uvme3i8tqnq2257nb7g6e7am9b6.apps.googleusercontent.com";
 			// GoModel::$go_client = new \Google_Client(['client_id' => $CLIENT_ID]);
 		    GoModel::$go_client = new \Google_Client();
-			GoModel::$go_client->setLogger(self::getLogger());
+			// GoModel::$go_client->setLogger(self::getLogger());
 			
 			// $client->setDeveloperKey('INSERT HERE');
 			
