@@ -93,7 +93,7 @@ class Encryption
         }
 
         // generate key used for authentication using ENCRYPTION_KEY & HMAC_SALT
-        $key = mb_substr(hash(self::HASH_FUNCTION, Config::get('auth.encryption.key') . Config::get('auth.hmac.salt')), 0, 32, '8bit');
+        $key = mb_substr(hash(self::HASH_FUNCTION, AbstractLogin::config('auth.encryption.key') . AbstractLogin::config('auth.hmac.salt')), 0, 32, '8bit');
 
         // split cipher into: hmac, cipher & iv
         $macSize = 64;
