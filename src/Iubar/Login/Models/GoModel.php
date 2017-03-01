@@ -3,8 +3,6 @@
 namespace Iubar\Login\Models;
 
 use Application\Models\Userexternal;
-use Application\Models\User;
-
 use Iubar\Login\Core\DbResource;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Text;
