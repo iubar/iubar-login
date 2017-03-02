@@ -3,8 +3,6 @@
 namespace Iubar\Login\Models;
 
 use Application\Models\Userexternal;
-use Application\Models\User;
-
 use Iubar\Login\Core\DbResource;
 use Iubar\Login\Services\Session;
 use Iubar\Login\Services\Text;
@@ -13,7 +11,6 @@ use Iubar\Login\Models\User as UserModel;
 use Iubar\Login\Models\Login;
 use Iubar\Login\Models\AbstractLogin;
 use Iubar\Login\Interfaces\IExternalModel;
-
 use Facebook\Facebook as FacebookSdk;
 use Facebook\FacebookResponse;
 use Facebook\Exceptions\FacebookResponseException;
