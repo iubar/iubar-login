@@ -13,16 +13,16 @@ use Iubar\Login\Services\Filter;
 
 
 class User extends AbstractLogin {
-	
+
 	// DEFAULT is the marker for "normal" accounts (that have a password etc.)
 	// There are other types of accounts that don't have passwords etc. (FACEBOOK)
 	const PROVIDER_TYPE_DEFAULT = 'DEFAULT';
 	const PROVIDER_TYPE_FB = 'FACEBOOK';
 	const PROVIDER_TYPE_GO = 'GOOGLE';
-		
+
 	const TABLE_NAME = 'Application\Models\User';
 	const FILTER_CALLBACK_FUNC = '\Iubar\Login\Services\Filter::XSSFilter';
-		
+
 	public static function isAdmin(){
 		$b = false;
 		$user = self::getCurrentLogged();
@@ -30,14 +30,14 @@ class User extends AbstractLogin {
 			if ($user->getAccounttype() == UserRole::ADMIN){
 				$b = true;
 			}
-		}		
+		}
 		return $b;
 	}
-	
+
 	public static function getAll(){
 		return DbResource::getEntityManager()->createQuery("SELECT u FROM " . self::TABLE_NAME . " u")->getResult();
 	}
-	
+
 // 	public static function getById($user_id){
 // 		$utente = null;
 // 		if ($id !== null){
@@ -45,17 +45,21 @@ class User extends AbstractLogin {
 // 		}
 // 		return $utente;
 // 	}
-	 
-	public static function getByUsername($username){		 
-		$result = DbResource::getEntityManager()->createQuery(
-			"SELECT u FROM " . self::TABLE_NAME . " u WHERE u.username = '" . $username . "'"
-		)->getResult();
-		return array_shift($result);
-		// oppure
-		// $user = DbResource::getEntityManager()->find(self::TABLE_NAME, $username);
-		// return $user;
+
+	public static function getByUsername($username){
+		if ($username !== null && $user != ''){
+			$result = DbResource::getEntityManager()->createQuery(
+				"SELECT u FROM " . self::TABLE_NAME . " u WHERE u.username = '" . $username . "'"
+				)->getResult();
+				return array_shift($result);
+				// oppure
+				// $user = DbResource::getEntityManager()->find(self::TABLE_NAME, $username);
+				// return $user;
+		} else {
+			return null;
+		}
 	}
-		
+
 	/**
 	 *
 	 * @param string $email
@@ -67,15 +71,15 @@ class User extends AbstractLogin {
 		)->getResult();
 		return array_shift($result);
 	}
-	
+
 	public static function getUserDataByUserNameOrEmail($str){
 		$user = self::getByUsername($str);
 		if ($user === null){
 			$user = self::getByEmail($str);
-		}		
+		}
 		return $user;
 	}
-		
+
  /**
      * Gets the user's data by user's id and a token (used by login-via-cookie process)
      *
@@ -87,12 +91,12 @@ class User extends AbstractLogin {
     public static function getUserDataByUserNameAndToken($user_name, $token){
 
         // get real token from database (and all other data)
-        $dql =  "SELECT u FROM " . self::TABLE_NAME . " u WHERE";                                   
+        $dql =  "SELECT u FROM " . self::TABLE_NAME . " u WHERE";
         $dql .=  " u.username = '" . $user_name . "'";
-        $dql .=  " AND u.remembermetoken = '" . $token . "'";     
-        $dql .=  " AND u.remembermetoken IS NOT NULL";                  
+        $dql .=  " AND u.remembermetoken = '" . $token . "'";
+        $dql .=  " AND u.remembermetoken IS NOT NULL";
         $dql .=  " AND u.providertype = '" . self::PROVIDER_TYPE_DEFAULT . "'";
-        
+
         $result = DbResource::getEntityManager()->createQuery($dql)->getResult();
         // return one row (we only have one result or nothing)
         return array_shift($result);
@@ -109,19 +113,19 @@ class User extends AbstractLogin {
     public static function getPublicProfilesOfAllUsers(){
 		$all_users_profiles = array();
     	$dql = "SELECT u FROM " . self::TABLE_NAME . " u";
-    	$users = DbResource::getEntityManager()->createQuery($dql)->getResult();        	
-    
+    	$users = DbResource::getEntityManager()->createQuery($dql)->getResult();
+
     	foreach ($users as $user) {
-      
+
     		$userid = $user->getUsername();
-    		$all_users_profiles[$userid] = new \stdClass(); 
+    		$all_users_profiles[$userid] = new \stdClass();
 //     		$all_users_profiles[$userid]->user_id = $userid;
     		$all_users_profiles[$userid]->user_name = $user->getUsername();
     		$all_users_profiles[$userid]->user_email = $user->getEmail();
     		$all_users_profiles[$userid]->user_active = $user->getActive();
     		$all_users_profiles[$userid]->user_deleted = $user->getDeleted();
     		$all_users_profiles[$userid]->user_avatar_link = self::getUserAvatarLink($user);
-    		
+
      		if(self::isExternalAccount($user)){
     			// TODO: ... public profile for the Google or Facebook user
      		}
@@ -130,11 +134,11 @@ class User extends AbstractLogin {
     		// Filter.php for more info on how to use. Removes (possibly bad) JavaScript etc from
     		// the user's values
     		array_walk_recursive($all_users_profiles, self::FILTER_CALLBACK_FUNC);
-			
-    	}    
+
+    	}
     	return $all_users_profiles;
     }
-    
+
     /**
      * Gets a user's profile data, according to the given $user_name
      * @param string $user_name
@@ -142,10 +146,10 @@ class User extends AbstractLogin {
      */
     public static function getPublicProfileOfUser($user_name){
 		$user_profile = null;
-    	$user = self::getByUsername($user_name);    		
+    	$user = self::getByUsername($user_name);
     	if ($user) {
 			$user_profile['user_id']		= $user->getEmail();
-    		$user_profile['user_name']		= $user->getUsername();			
+    		$user_profile['user_name']		= $user->getUsername();
     		$user_profile['user_email'] 	= $user->getEmail();
     		$user_profile['user_active'] 	= $user->getActive();
     		$user_profile['user_deleted'] 	= $user->getDeleted();
@@ -153,20 +157,20 @@ class User extends AbstractLogin {
 
 			if(self::isExternalAccount($user)){
     			// TODO: ... public profile for the Google or Facebook user
-     		}			
+     		}
 
 			// all elements of array passed to Filter::XSSFilter for XSS sanitation, have a look into
 			// Filter.php for more info on how to use. Removes (possibly bad) JavaScript etc from
 			// the user's values
 			array_walk_recursive($user_profile, self::FILTER_CALLBACK_FUNC);
-			
+
     	} else {
     		Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_USER_DOES_NOT_EXIST'));
     	}
-    
+
     	return $user_profile;
     }
-    
+
     public static function getUserAvatarLink(\Application\Models\User $user){
     	$user_avatar_link = null;
     	if (self::config('auth.gravatar.enabled')) {
@@ -176,7 +180,7 @@ class User extends AbstractLogin {
     	}
     	return $user_avatar_link;
     }
-    
+
 	public static function save(\Application\Models\User $user){
 		if ($user){
 			$em = DbResource::getEntityManager();
@@ -184,7 +188,7 @@ class User extends AbstractLogin {
 			$em->flush();
 		}
 	}
-    
+
     /**
      * Checks if a username is already taken
      *
@@ -199,7 +203,7 @@ class User extends AbstractLogin {
     	}
     	return true;
     }
-    
+
     /**
      * Checks if a email is already used
      *
@@ -207,14 +211,14 @@ class User extends AbstractLogin {
      *
      * @return bool
      */
-    public static function doesEmailAlreadyExist($user_email){    	
+    public static function doesEmailAlreadyExist($user_email){
     	$user = self::getByEmail($user_email);
     	if (!$user) {
     		return false;
     	}
     	return true;
     }
-    
+
     /**
      * Writes new username to database
      *
@@ -232,7 +236,7 @@ class User extends AbstractLogin {
 //     	}
 //     	return false;
 //     }
-    
+
     /**
      * Writes new email address to database
      *
@@ -249,7 +253,7 @@ class User extends AbstractLogin {
     	}
     	return false;
     }
-    
+
     /**
      * Edit the user's name, provided in the editing form
      *
@@ -264,25 +268,25 @@ class User extends AbstractLogin {
 //     		Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_USERNAME_SAME_AS_OLD_ONE'));
 //     		return false;
 //     	}
-    
+
     	// username cannot be empty and must be azAZ09 and 2-64 characters
 //     	if (!preg_match("/^[a-zA-Z0-9]{2,64}$/", $new_user_name)) {
 //     		Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_USERNAME_DOES_NOT_FIT_PATTERN'));
 //     		return false;
 //     	}
-    
+
 //     	// clean the input, strip usernames longer than 64 chars (maybe fix this ?)
 //     	$new_user_name = substr(strip_tags($new_user_name), 0, 64);
-    
+
 //     	// check if new username already exists
 //     	if (self::doesUsernameAlreadyExist($new_user_name)) {
 //     		Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_USERNAME_ALREADY_TAKEN'));
 //     		return false;
 //     	}
-    
+
 //     	return true;
 //     }
-    
+
     /**
      * Edit the user's email
      *
@@ -297,13 +301,13 @@ class User extends AbstractLogin {
     		Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_EMAIL_FIELD_EMPTY'));
     		return false;
     	}
-    
+
     	// check if new email is same like the old one
     	if ($new_user_email == Session::getDecoded(Session::SESSION_USER_EMAIL)) {
     		Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_EMAIL_SAME_AS_OLD_ONE'));
     		return false;
     	}
-    
+
     	// user's email must be in valid email format, also checks the length
     	// @see http://stackoverflow.com/questions/21631366/php-filter-validate-email-max-length
     	// @see http://stackoverflow.com/questions/386294/what-is-the-maximum-length-of-a-valid-email-address
@@ -311,16 +315,16 @@ class User extends AbstractLogin {
     		Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_EMAIL_DOES_NOT_FIT_PATTERN'));
     		return false;
     	}
-    
+
     	// strip tags, just to be sure
     	$new_user_email = substr(strip_tags($new_user_email), 0, 254);
-    
+
     	// check if user's email already exists
     	if (self::doesEmailAlreadyExist($new_user_email)) {
     		Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_USER_EMAIL_ALREADY_TAKEN'));
     		return false;
     	}
-    
+
     	// write to database, if successful ...
     	// ... then write new email to session, Gravatar too (as this relies to the user's email address)
     	if (self::saveNewEmailAddress(Session::getDecoded(Session::SESSION_USER_NAME), $new_user_email)) {
@@ -329,11 +333,11 @@ class User extends AbstractLogin {
     		Session::add(Session::SESSION_FEEDBACK_POSITIVE, Text::get('FEEDBACK_EMAIL_CHANGE_SUCCESSFUL'));
     		return true;
     	}
-    
+
     	Session::add(Session::SESSION_FEEDBACK_NEGATIVE, Text::get('FEEDBACK_UNKNOWN_ERROR'));
     	return false;
     }
-    
+
     public static function isExternalAccount(\Application\Models\User $user){
     	$b = false;
 		if($user){
@@ -342,7 +346,7 @@ class User extends AbstractLogin {
 		}
 	    return $b;
 	}
-	
+
 	public static function isExternalProvider($provider_type){
 		$b = false;
 		if($provider_type===self::PROVIDER_TYPE_FB){
@@ -351,37 +355,37 @@ class User extends AbstractLogin {
 			$b=true;
 		}
 		return $b;
-	}	
+	}
 
 	public static function deleteUser($user_email, $provider_type){
 		$b1 = true;
 		$b2 = false;
 	    if($provider_type){
 			$b1 = ExternalModel::rollbackRegistrationByEmail($provider_type);
-		}		
+		}
 		$b2 = Registration::rollbackRegistrationByEmail($user_email);
 		return $b1 && $b2;
 	}
-	
+
 	public static function getCurrentLogged(){
-		$user = null;		
-		$username = Filter::html_entity_invert(Session::get(Session::SESSION_USER_NAME));		
-		if ($username !== null){
+		$user = null;
+		$username = Filter::html_entity_invert(Session::get(Session::SESSION_USER_NAME));
+		if ($username !== null && $username != ''){
 			$user = self::getByUsername($username);
-		}		
+		}
 		return $user;
 	}
-	
+
 	public static function isApiKeyAvailable($api_key){
 		$b = false;
 		$sql = "SELECT u ";
 		$sql .= "FROM " . self::TABLE_NAME . " u ";
-		$sql .= "WHERE u.apikey = '$api_key'";		
+		$sql .= "WHERE u.apikey = '$api_key'";
 		$result = DbResource::getEntityManager()->createQuery($sql)->getOneOrNullResult();
 		if ($result === null){
 			$b = true;
-		}		
+		}
 		return $b;
 	}
-	
+
 }
