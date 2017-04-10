@@ -47,7 +47,7 @@ class User extends AbstractLogin {
 // 	}
 
 	public static function getByUsername($username){
-		if ($username !== null && $user != ''){
+		if ($username !== null && $username!= ''){
 			$result = DbResource::getEntityManager()->createQuery(
 				"SELECT u FROM " . self::TABLE_NAME . " u WHERE u.username = '" . $username . "'"
 				)->getResult();
