@@ -26,7 +26,7 @@ implementare tutti i twig referenziati
 trasforamre in costanti tutte le rotte
 
 
-confrontare 
+Confrontare:
 
 $now = new \DateTime();
 
@@ -37,7 +37,8 @@ http://php.net/manual/en/datetime.construct.php
 
 
 
-
+Altri riferimenti importanti:
+https://github.com/GoogleChrome/chromeos_smart_card_connector/issues/25
 
 
 
