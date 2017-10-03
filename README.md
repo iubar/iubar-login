@@ -85,3 +85,9 @@ mkdir EXPORT
 call ".\vendor\bin\doctrine.php.bat" orm:info
 
 pause 
+
+
+# Links
+ * https://hybridauth.github.io/
+ * http://www.opauth.org/
+ * https://hybridauth.github.io/hybridauth/
