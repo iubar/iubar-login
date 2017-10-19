@@ -89,5 +89,9 @@ pause
 
 # Links
  * https://hybridauth.github.io/
- * http://www.opauth.org/
+ * http://www.opauth.org/ https://github.com/opauth/opauth
  * https://hybridauth.github.io/hybridauth/
+ * https://github.com/socialConnect/auth
+ * https://cartalyst.com/manual/sentinel-social/2.0
+ * https://github.com/laravel/socialite
+ * https://laravel.com/docs/5.5/passport
