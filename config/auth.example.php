@@ -18,11 +18,11 @@ ini_set("display_errors", 1);
 ini_set('session.cookie_httponly', 1);
 
 return array (
-    
+
     // Avatar
-    'auth.avatar.path' => realpath(dirname(__FILE__).'/../../') . '/public/avatars/',
+	'auth.avatar.path' => realpath(dirname(__FILE__).'/../../') . '/public/avatars/', // il percorso devbe essere scrivibile: sudo chmod 0777 -R "/var/www/html/${PROJECTFOLDER}/public/avatars
     'auth.avatar.path.public' => 'avatars/',
-    
+
     // Cookie
     'auth.cookie.runtime' => 1209600,
     'auth.cookie.path' => '/',
@@ -30,7 +30,7 @@ return array (
     'auth.cookie.secure' => false,
     'auth.cookie.http' => true,
     'auth.session.runtime' => 604800,
-    
+
     // Gravatar
     'auth.gravatar.enabled' => true,
     'auth.gravatar.imageset' => 'mm',
@@ -38,17 +38,17 @@ return array (
     'auth.avatar.size' => 44,
     'auth.avatar.quality' => 85,
     'auth.avatar.default' => 'default.jpg',
-    
+
     // Encryption
     'auth.encryption.key' => 'encryption key here',
     'auth.hmac.salt' => '9qk0c^5L7d#26tM9z8n1%',
-    
+
     // Routes
     'auth.routes.password-reset' => 'login/password-reset',
     'auth.routes.verification' => 'register/verify',
     'auth.routes.pwdreset' => 'login/password-reset',
     'auth.routes.afterlogin' => '/dashboard',
-    
+
     // Emails
     'email.passwordreset.subject' => 'Password reset',
     'email.passwordreset.content' => 'Clicca nel seguente link per resettare la tua password: ',
@@ -58,7 +58,7 @@ return array (
     'email.welcome.content' => 'Benvenuto...',
     'email.pwdreset.subject' => 'Recupero password',
     'email.pwdreset.content' => 'Clicca nel seguente link per resettare la tua password: ',
-    
+
     // Views
     // TODO: rinominare i file
     'auth.views.fb-login-server-side' => 'login/external/fb-login-server-side.twig',
@@ -73,18 +73,18 @@ return array (
     'auth.views.password-reset' => 'login/password-reset.twig', // TODO: includere
     'auth.views.index' => 'login/index.twig',
     'auth.views.verify' => 'login/verify.twig',
-    
+
     // Google recaptcha
     'auth.captcha.enabled' => true,
     'auth.captcha.key' => 'key',
     'auth.captcha.secret' => 'secret',
-    
+
     // Facebook
     'auth.facebook.appid' => '247034472002600',
     'auth.facebook.appsecret' => '',
     'auth.facebook.apiver' => 'v2.8',
-    
+
     'auth.email.verification.enabled' => false,
     'auth.email.welcome.enabled' => false
-    
+
 );
