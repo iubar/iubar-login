@@ -26,7 +26,7 @@ implementare tutti i twig referenziati
 trasforamre in costanti tutte le rotte
 
 
-confrontare 
+Confrontare:
 
 $now = new \DateTime();
 
@@ -37,7 +37,8 @@ http://php.net/manual/en/datetime.construct.php
 
 
 
-
+Altri riferimenti importanti:
+https://github.com/GoogleChrome/chromeos_smart_card_connector/issues/25
 
 
 
@@ -84,3 +85,13 @@ mkdir EXPORT
 call ".\vendor\bin\doctrine.php.bat" orm:info
 
 pause 
+
+
+# Links
+ * https://hybridauth.github.io/
+ * http://www.opauth.org/ https://github.com/opauth/opauth
+ * https://hybridauth.github.io/hybridauth/
+ * https://github.com/socialConnect/auth
+ * https://cartalyst.com/manual/sentinel-social/2.0
+ * https://github.com/laravel/socialite
+ * https://laravel.com/docs/5.5/passport
