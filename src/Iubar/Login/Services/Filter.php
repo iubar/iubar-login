@@ -1,5 +1,7 @@
 <?php
 
+namespace Iubar\Login\Services;
+
 /**
  * Class Filter
  *

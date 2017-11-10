@@ -10,8 +10,8 @@ return array (
 	'go.secret.file' => __DIR__ . '/google-client-secret.json',
 
     // Email
-    'email.mailgun.password' => 'password',
-    'email.smtp' => 'smpt',
     'email.postmaster' => 'postmaster',
     'email.transactional' => 'transactional',
+	'email.aws.user' => '',
+	'email.aws.password' => '',
 );
