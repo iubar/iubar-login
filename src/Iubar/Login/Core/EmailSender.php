@@ -7,9 +7,11 @@ use Iubar\Login\Models\AbstractLogin;
 
 class EmailSender {
 
+    private $app = null;
     private $m = null;
 
 	public function __construct(){
+            $this->app = \Slim\Slim::getInstance();
 	    $this->m = SmtpMailer::factory('amazonses');
 	}
 
