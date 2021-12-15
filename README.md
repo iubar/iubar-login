@@ -1,4 +1,4 @@
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/edbddedc8bb34647bb181f5e7d775498)](https://app.codacy.com/manual/Iubar/iubar-login/dashboard)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f9cb96dd46f94a589d8be55cc52188ca)](https://www.codacy.com/gh/iubar/iubar-login/dashboard)
 
 # iubar-login
 
